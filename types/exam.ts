@@ -1,0 +1,22 @@
+export interface Exam {
+  id: string;
+  name: string; // e.g. "BCS (Civil Service)", "Bank Job Recruitment", "HSC Examination"
+  slug: string; // "bcs", "bank-job", "hsc"
+  description?: string;
+  icon?: string;
+  order: number;
+  isActive: boolean;
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface Subject {
+  id: string;
+  examId: string;
+  name: string; // e.g. "তথ্য ও যোগাযোগ প্রযুক্তি (ICT)", "বাংলা", "English", "গণিত"
+  description?: string;
+  order: number;
+  isActive: boolean;
+  createdAt: any;
+  updatedAt: any;
+}
