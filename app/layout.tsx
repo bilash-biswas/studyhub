@@ -31,6 +31,8 @@ export const metadata: Metadata = {
   authors: [{ name: "StudyHub Team" }],
 };
 
+import { AuthProvider } from "@/lib/context/auth-context";
+
 export default function RootLayout({
   children,
 }: {
@@ -42,7 +44,7 @@ export default function RootLayout({
       className={`${inter.variable} ${hindSiliguri.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
