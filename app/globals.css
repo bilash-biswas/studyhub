@@ -1,25 +1,112 @@
 @import "tailwindcss";
 
-:root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+@layer base {
+  :root {
+    --background: #F8FAFC;
+    --foreground: #0F172A;
+    --card: #FFFFFF;
+    --card-foreground: #0F172A;
+    --popover: #FFFFFF;
+    --popover-foreground: #0F172A;
+    --primary: #4F46E5;
+    --primary-foreground: #FFFFFF;
+    --primary-hover: #4338CA;
+    --primary-light: #EEF2FF;
+    --secondary: #0EA5E9;
+    --secondary-foreground: #FFFFFF;
+    --secondary-hover: #0284C7;
+    --secondary-light: #E0F2FE;
+    --muted: #F1F5F9;
+    --muted-foreground: #64748B;
+    --accent: #F1F5F9;
+    --accent-foreground: #0F172A;
+    --destructive: #EF4444;
+    --destructive-foreground: #FFFFFF;
+    --destructive-light: #FEF2F2;
+    --success: #10B981;
+    --success-foreground: #FFFFFF;
+    --success-light: #ECFDF5;
+    --warning: #F59E0B;
+    --warning-foreground: #FFFFFF;
+    --warning-light: #FFFBEB;
+    --border: #E2E8F0;
+    --input: #CBD5E1;
+    --ring: #818CF8;
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: #0F172A;
+    --foreground: #F8FAFC;
+    --card: #111827;
+    --card-foreground: #F8FAFC;
+    --secondary-card: #1E293B;
+    --popover: #111827;
+    --popover-foreground: #F8FAFC;
+    --primary: #818CF8;
+    --primary-foreground: #0F172A;
+    --primary-hover: #A5B4FC;
+    --primary-light: #312E81;
+    --secondary: #38BDF8;
+    --secondary-foreground: #0F172A;
+    --secondary-hover: #7DD3FC;
+    --secondary-light: #0C4A6E;
+    --muted: #1E293B;
+    --muted-foreground: #94A3B8;
+    --accent: #1E293B;
+    --accent-foreground: #F8FAFC;
+    --destructive: #F87171;
+    --destructive-foreground: #0F172A;
+    --destructive-light: #450A0A;
+    --success: #34D399;
+    --success-foreground: #0F172A;
+    --success-light: #064E3B;
+    --warning: #FBBF24;
+    --warning-foreground: #0F172A;
+    --warning-light: #451A03;
+    --border: #334155;
+    --input: #334155;
+    --ring: #A5B4FC;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-secondary-card: var(--secondary-card);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-secondary-light: var(--secondary-light);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-light: var(--destructive-light);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-light: var(--success-light);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-light: var(--warning-light);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --font-sans: var(--font-inter), var(--font-bengali), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020617;
-    --foreground: #f8fafc;
-  }
-}
-
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
   text-rendering: optimizeLegibility;

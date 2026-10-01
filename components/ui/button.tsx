@@ -23,26 +23,35 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none select-none active:scale-[0.98]";
+      "inline-flex items-center justify-center font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none select-none active:scale-[0.98] cursor-pointer";
 
     const variantStyles = {
+      // Primary: Indigo (Light: #4F46E5, Dark: #818CF8 text #0F172A)
       primary:
-        "bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 shadow-sm",
+        "bg-[#4F46E5] text-white hover:bg-[#4338CA] focus-visible:ring-[#818CF8] dark:bg-[#818CF8] dark:text-[#0F172A] dark:hover:bg-[#A5B4FC] dark:focus-visible:ring-[#A5B4FC] shadow-xs font-semibold",
+
+      // Secondary: Neutral Slate Card Button
       secondary:
-        "bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700",
+        "bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-800 shadow-xs",
+
+      // Outline: Neutral Bordered Button
       outline:
-        "border border-gray-300 dark:border-gray-700 bg-transparent text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-900",
+        "border border-slate-300 dark:border-slate-700 bg-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80",
+
+      // Ghost: Transparent Background
       ghost:
-        "bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800",
+        "bg-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
+
+      // Danger / Destructive: Red
       danger:
-        "bg-rose-600 text-white hover:bg-rose-700 active:bg-rose-800 shadow-sm",
+        "bg-[#EF4444] text-white hover:bg-[#DC2626] dark:bg-[#F87171] dark:text-[#0F172A] dark:hover:bg-[#FCA5A5] shadow-xs font-semibold",
     };
 
     const sizeStyles = {
       sm: "h-8 px-3 text-xs gap-1.5",
       md: "h-10 px-4 text-sm gap-2",
-      lg: "h-12 px-6 text-base gap-2.5",
-      icon: "h-10 w-10 p-0",
+      lg: "h-11 px-6 text-base gap-2.5",
+      icon: "h-9 w-9 p-0",
     };
 
     return (

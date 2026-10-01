@@ -32,6 +32,7 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from "@/lib/context/auth-context";
+import { ThemeProvider } from "@/lib/context/theme-context";
 
 export default function RootLayout({
   children,
@@ -42,9 +43,12 @@ export default function RootLayout({
     <html
       lang="bn"
       className={`${inter.variable} ${hindSiliguri.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col font-sans bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
-        <AuthProvider>{children}</AuthProvider>
+      <body className="min-h-full flex flex-col font-sans bg-background text-foreground antialiased selection:bg-indigo-100 selection:text-indigo-900 dark:selection:bg-indigo-900 dark:selection:text-indigo-100">
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

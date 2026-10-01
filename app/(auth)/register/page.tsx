@@ -70,7 +70,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <Card className="shadow-lg border-slate-200/90 dark:border-slate-800">
+    <Card className="shadow-sm border-slate-200 dark:border-slate-800">
       <CardHeader className="space-y-1 pb-4">
         <CardTitle className="text-xl font-bold tracking-tight text-center">
           Create an account
@@ -81,8 +81,8 @@ export default function RegisterPage() {
       </CardHeader>
       <CardContent className="space-y-4">
         {authError && (
-          <div className="flex items-start gap-2.5 p-3 rounded-lg bg-rose-50 border border-rose-200 dark:bg-rose-950/40 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2.5 p-3 rounded-lg bg-red-50 border border-red-200 dark:bg-red-950/40 dark:border-red-900 text-red-700 dark:text-red-300 text-xs">
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
             <p className="flex-1">{authError}</p>
           </div>
         )}
@@ -91,7 +91,7 @@ export default function RegisterPage() {
         <Button
           type="button"
           variant="outline"
-          className="w-full relative gap-2 font-medium text-slate-700 dark:text-slate-200"
+          className="w-full relative gap-2 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
           onClick={handleGoogleSignIn}
           isLoading={isGoogleSubmitting}
           disabled={isSubmitting}
@@ -208,25 +208,26 @@ export default function RegisterPage() {
               <input
                 id="acceptTerms"
                 type="checkbox"
-                className="h-4 w-4 mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                className="h-4 w-4 mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900"
                 {...register("acceptTerms")}
               />
               <Label htmlFor="acceptTerms" className="text-xs font-normal text-slate-600 dark:text-slate-400 leading-snug">
                 I agree to the{" "}
-                <span className="text-emerald-600 dark:text-emerald-400 font-medium">Terms of Service</span>{" "}
+                <span className="text-indigo-600 dark:text-indigo-400 font-medium">Terms of Service</span>{" "}
                 and{" "}
-                <span className="text-emerald-600 dark:text-emerald-400 font-medium">Privacy Policy</span>.
+                <span className="text-indigo-600 dark:text-indigo-400 font-medium">Privacy Policy</span>.
               </Label>
             </div>
             {errors.acceptTerms && (
-              <p className="text-xs text-rose-500">{errors.acceptTerms.message}</p>
+              <p className="text-xs text-red-600 dark:text-red-400">{errors.acceptTerms.message}</p>
             )}
           </div>
 
           {/* Submit Button */}
           <Button
             type="submit"
-            className="w-full bg-emerald-600 hover:bg-emerald-700 font-semibold mt-2"
+            variant="primary"
+            className="w-full font-semibold mt-2"
             isLoading={isSubmitting}
             disabled={isGoogleSubmitting}
           >
@@ -238,7 +239,7 @@ export default function RegisterPage() {
           Already have an account?{" "}
           <Link
             href="/login"
-            className="font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 hover:underline"
+            className="font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline"
           >
             Sign in
           </Link>
