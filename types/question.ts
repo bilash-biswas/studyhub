@@ -15,7 +15,7 @@ export interface Question {
   correctOptionId: string; // "a" | "b" | "c" | "d"
   explanation?: string; // Step-by-step solution with optional LaTeX formulas
   difficulty: QuestionDifficulty;
-  year?: number;
+  year?: number | null;
   source?: string; // e.g. "45th BCS Preliminary", "Combined 8 Banks 2023"
   tags: string[]; // flexible tags e.g. ["algebra", "equations", "45th-bcs"]
   imageUrl?: string | null;
