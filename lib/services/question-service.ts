@@ -89,7 +89,52 @@ export async function getQuestions(
       lastDoc,
       hasMore,
     };
-  } catch (error) {
+  } catch (error: any) {
+    // If a composite index is missing or building, fall back to simple filtering and in-memory sort
+    if (error?.message?.includes("requires an index") || error?.code === "failed-precondition") {
+      try {
+        const fallbackConstraints: QueryConstraint[] = [];
+        if (filters.examId) fallbackConstraints.push(where("examId", "==", filters.examId));
+        if (filters.subjectId) fallbackConstraints.push(where("subjectId", "==", filters.subjectId));
+        if (filters.difficulty) fallbackConstraints.push(where("difficulty", "==", filters.difficulty));
+        if (filters.status) {
+          fallbackConstraints.push(where("status", "==", filters.status));
+        } else {
+          fallbackConstraints.push(where("status", "==", "published"));
+        }
+        if (filters.tag) {
+          fallbackConstraints.push(where("tags", "array-contains", filters.tag.toLowerCase().trim()));
+        }
+        fallbackConstraints.push(limit(pageSize * 3));
+
+        const fallbackQ = query(questionsCol(), ...fallbackConstraints);
+        const snapshot = await getDocs(fallbackQ);
+
+        const allDocs = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        })) as Question[];
+
+        allDocs.sort((a: any, b: any) => {
+          const tA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt || 0).getTime();
+          const tB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt || 0).getTime();
+          return tB - tA;
+        });
+
+        const hasMore = allDocs.length > pageSize;
+        const questions = allDocs.slice(0, pageSize);
+        const lastDoc = snapshot.docs.length > 0 ? snapshot.docs[Math.min(pageSize - 1, snapshot.docs.length - 1)] : null;
+
+        return {
+          questions,
+          lastDoc,
+          hasMore,
+        };
+      } catch (fallbackError) {
+        console.error("Fallback error fetching questions:", fallbackError);
+      }
+    }
+
     console.error("Error fetching questions:", error);
     return {
       questions: [],
