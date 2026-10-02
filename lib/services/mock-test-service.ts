@@ -84,6 +84,26 @@ export async function createMockTest(
 }
 
 /**
+ * Admin: Updates an existing mock test
+ */
+export async function updateMockTest(
+  id: string,
+  data: Partial<Omit<MockTest, "id" | "createdAt">>
+): Promise<void> {
+  await updateDoc(mockTestDoc(id), {
+    ...data,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Admin: Deletes a mock test
+ */
+export async function deleteMockTest(id: string): Promise<void> {
+  await deleteDoc(mockTestDoc(id));
+}
+
+/**
  * Seeds realistic default mock tests if none exist.
  */
 export async function seedSampleMockTests(availableQuestionIds: string[]): Promise<void> {
