@@ -20,19 +20,17 @@ export async function getSubjects(
   includeInactive: boolean = false
 ): Promise<Subject[]> {
   try {
-    let q = query(subjectsCol(), orderBy("order", "asc"));
-    if (!includeInactive) {
-      q = query(
-        subjectsCol(),
-        where("isActive", "==", true),
-        orderBy("order", "asc")
-      );
-    }
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map((docSnap) => ({
+    const snapshot = await getDocs(subjectsCol());
+    let subjects = snapshot.docs.map((docSnap) => ({
       id: docSnap.id,
       ...docSnap.data(),
     })) as Subject[];
+
+    if (!includeInactive) {
+      subjects = subjects.filter((s) => s.isActive !== false);
+    }
+
+    return subjects.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   } catch (error) {
     console.error("Error fetching all subjects:", error);
     return [];
@@ -48,26 +46,18 @@ export async function getSubjectsByExamId(
   includeInactive: boolean = false
 ): Promise<Subject[]> {
   try {
-    let q = query(
-      subjectsCol(),
-      where("examId", "==", examId),
-      orderBy("order", "asc")
-    );
-
-    if (!includeInactive) {
-      q = query(
-        subjectsCol(),
-        where("examId", "==", examId),
-        where("isActive", "==", true),
-        orderBy("order", "asc")
-      );
-    }
-
+    const q = query(subjectsCol(), where("examId", "==", examId));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((docSnap) => ({
+    let subjects = snapshot.docs.map((docSnap) => ({
       id: docSnap.id,
       ...docSnap.data(),
     })) as Subject[];
+
+    if (!includeInactive) {
+      subjects = subjects.filter((s) => s.isActive !== false);
+    }
+
+    return subjects.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   } catch (error) {
     console.error(`Error fetching subjects for exam ${examId}:`, error);
     return [];

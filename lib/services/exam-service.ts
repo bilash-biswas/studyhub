@@ -19,16 +19,17 @@ import { Exam } from "@/types";
  */
 export async function getExams(includeInactive: boolean = false): Promise<Exam[]> {
   try {
-    let q = query(examsCol(), orderBy("order", "asc"));
-    if (!includeInactive) {
-      q = query(examsCol(), where("isActive", "==", true), orderBy("order", "asc"));
-    }
-
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map((docSnap) => ({
+    const snapshot = await getDocs(examsCol());
+    let exams = snapshot.docs.map((docSnap) => ({
       id: docSnap.id,
       ...docSnap.data(),
     })) as Exam[];
+
+    if (!includeInactive) {
+      exams = exams.filter((e) => e.isActive !== false);
+    }
+
+    return exams.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   } catch (error) {
     console.error("Error fetching exams:", error);
     return [];

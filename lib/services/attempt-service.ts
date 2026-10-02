@@ -199,7 +199,25 @@ export async function getUserRecentAttempts(
       ...d.data(),
     })) as Attempt[];
   } catch (error) {
-    console.error("Error fetching user attempts:", error);
-    return [];
+    try {
+      const fallbackQ = query(
+        attemptsCol(),
+        where("userId", "==", userId),
+        limit(maxCount * 2)
+      );
+      const snap = await getDocs(fallbackQ);
+      const list = snap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+      })) as Attempt[];
+      return list.sort((a: any, b: any) => {
+        const tA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt || 0).getTime();
+        const tB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt || 0).getTime();
+        return tB - tA;
+      }).slice(0, maxCount);
+    } catch {
+      console.error("Error fetching user attempts:", error);
+      return [];
+    }
   }
 }
