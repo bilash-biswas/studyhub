@@ -5,3 +5,4 @@ export * from "./mockTest";
 export * from "./attempt";
 export * from "./leaderboard";
 export * from "./liveRoom";
+export * from "./dailyChallenge";

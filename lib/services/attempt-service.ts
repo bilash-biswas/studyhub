@@ -17,6 +17,7 @@ import { Attempt, AttemptAnswer, ExamMode } from "@/types";
 import { calculateScore } from "@/lib/calculations/score";
 import { calculateAccuracy } from "@/lib/calculations/accuracy";
 import { calculateNextStreak, getFormattedDate } from "@/lib/calculations/streak";
+import { recordLeaderboardScore } from "@/lib/services/leaderboard-service";
 
 export interface CreateAttemptInput {
   userId: string;
@@ -145,6 +146,18 @@ export async function recordAttempt(input: CreateAttemptInput): Promise<string> 
   }
 
   await batch.commit();
+
+  // Asynchronously record leaderboard points without blocking
+  recordLeaderboardScore({
+    userId: input.userId,
+    displayName: "Candidate",
+    scoreToAdd: Math.max(0, score),
+    questionsAttempted: answeredQuestions,
+    correctAnswers,
+  }).catch((err) => {
+    console.warn("Could not record leaderboard points:", err);
+  });
+
   return attemptId;
 }
 
