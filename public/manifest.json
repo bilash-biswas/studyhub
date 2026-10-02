@@ -1,0 +1,16 @@
+{
+  "name": "StudyHub — Practice. Improve. Succeed.",
+  "short_name": "StudyHub",
+  "description": "Collaborative online exam-preparation platform for BCS, Bank Job, and HSC candidates in Bangladesh.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#4F46E5",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

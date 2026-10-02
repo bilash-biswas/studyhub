@@ -27,8 +27,15 @@ export const metadata: Metadata = {
   title: "StudyHub — Practice. Improve. Succeed.",
   description:
     "Collaborative online exam-preparation platform for BCS, Bank Job, and HSC candidates in Bangladesh.",
+  manifest: "/manifest.json",
+  icons: { icon: "/favicon.ico" },
   keywords: ["BCS", "Bank Job", "HSC", "Exam Preparation", "MCQ Practice", "Bangladesh", "Mock Test"],
   authors: [{ name: "StudyHub Team" }],
+  openGraph: {
+    title: "StudyHub — Practice. Improve. Succeed.",
+    description: "Bangladesh Civil Service, Bank Job, and HSC competitive exam preparation SaaS.",
+    type: "website",
+  },
 };
 
 import { AuthProvider } from "@/lib/context/auth-context";
