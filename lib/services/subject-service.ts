@@ -14,6 +14,32 @@ import { subjectsCol, subjectDoc } from "@/lib/firebase/firestore";
 import { Subject } from "@/types";
 
 /**
+ * Fetches all subjects across all exams.
+ */
+export async function getSubjects(
+  includeInactive: boolean = false
+): Promise<Subject[]> {
+  try {
+    let q = query(subjectsCol(), orderBy("order", "asc"));
+    if (!includeInactive) {
+      q = query(
+        subjectsCol(),
+        where("isActive", "==", true),
+        orderBy("order", "asc")
+      );
+    }
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    })) as Subject[];
+  } catch (error) {
+    console.error("Error fetching all subjects:", error);
+    return [];
+  }
+}
+
+/**
  * Fetches all subjects for a given exam ordered by order.
  * By default, returns only active subjects for students.
  */

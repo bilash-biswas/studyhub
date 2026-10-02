@@ -10,11 +10,13 @@ import {
   addDoc,
   writeBatch,
   doc,
+  increment,
 } from "firebase/firestore";
-import { attemptsCol, attemptDoc, userQuestionStatDoc, db } from "@/lib/firebase/firestore";
+import { attemptsCol, attemptDoc, userQuestionStatDoc, userDoc, db } from "@/lib/firebase/firestore";
 import { Attempt, AttemptAnswer, ExamMode } from "@/types";
 import { calculateScore } from "@/lib/calculations/score";
 import { calculateAccuracy } from "@/lib/calculations/accuracy";
+import { calculateNextStreak, getFormattedDate } from "@/lib/calculations/streak";
 
 export interface CreateAttemptInput {
   userId: string;
@@ -114,6 +116,32 @@ export async function recordAttempt(input: CreateAttemptInput): Promise<string> 
         { merge: true }
       );
     }
+  }
+
+  // Update user profile metrics & streak in the same atomic batch
+  try {
+    const userSnap = await getDoc(userDoc(input.userId));
+    if (userSnap.exists()) {
+      const userData = userSnap.data();
+      const streakRes = calculateNextStreak({
+        currentStreak: userData.currentStreak || 0,
+        longestStreak: userData.longestStreak || 0,
+        lastPracticeDate: userData.lastPracticeDate || null,
+        todayDate: getFormattedDate(),
+      });
+
+      batch.update(userDoc(input.userId), {
+        totalAttempts: increment(1),
+        totalQuestionsAnswered: increment(answeredQuestions),
+        totalCorrect: increment(correctAnswers),
+        currentStreak: streakRes.currentStreak,
+        longestStreak: streakRes.longestStreak,
+        lastPracticeDate: streakRes.lastPracticeDate,
+        updatedAt: timestamp,
+      });
+    }
+  } catch (err) {
+    console.warn("Could not batch update user profile streak:", err);
   }
 
   await batch.commit();
