@@ -8,6 +8,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
 [![Firebase](https://img.shields.io/badge/Firebase-v12_Modular-FFCA28?logo=firebase)](https://firebase.google.com/)
+[![CI](https://github.com/bilash-biswas/studyhub/actions/workflows/ci.yml/badge.svg)](https://github.com/bilash-biswas/studyhub/actions/workflows/ci.yml)
 [![Cost](https://img.shields.io/badge/Infrastructure_Cost-$0_/_0_BDT-10B981)](#strict-0--0-bdt-free-tier-architecture)
 
 ---
