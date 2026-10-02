@@ -119,6 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(userProfile);
       return { success: true };
     } catch (err: any) {
+      console.error("signInWithEmail error:", err);
       return { success: false, error: getFriendlyAuthErrorMessage(err?.code || "") };
     }
   };
@@ -132,6 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(userProfile);
       return { success: true };
     } catch (err: any) {
+      console.error("signUpWithEmail error:", err);
       return { success: false, error: getFriendlyAuthErrorMessage(err?.code || "") };
     }
   };
@@ -143,6 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(userProfile);
       return { success: true };
     } catch (err: any) {
+      console.error("signInWithGoogle error:", err);
       return { success: false, error: getFriendlyAuthErrorMessage(err?.code || "") };
     }
   };

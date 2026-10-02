@@ -34,7 +34,13 @@ export function getFriendlyAuthErrorMessage(errorCode: string): string {
       return "Sign-in popup was closed before completing. Please try again.";
     case "auth/network-request-failed":
       return "Network connection issue. Please check your internet connection.";
+    case "auth/unauthorized-domain":
+      return "This domain (medhavi-nine.vercel.app) is not authorized in Firebase Console. Please add it to Authentication -> Settings -> Authorized domains.";
+    case "auth/invalid-api-key":
+      return "Firebase API key is invalid or missing. Please ensure NEXT_PUBLIC_FIREBASE_API_KEY is configured in Vercel Project Settings and redeploy.";
+    case "auth/configuration-not-found":
+      return "Sign-in provider is not configured. Please enable Email/Password or Google provider in Firebase Console.";
     default:
-      return "An unexpected authentication error occurred. Please try again.";
+      return `Authentication error (${errorCode || "unknown"}). Please verify your Firebase project setup.`;
   }
 }
