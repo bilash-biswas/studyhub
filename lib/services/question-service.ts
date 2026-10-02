@@ -13,6 +13,7 @@ import {
   addDoc,
   DocumentSnapshot,
   QueryConstraint,
+  documentId,
 } from "firebase/firestore";
 import { questionsCol, questionDoc } from "@/lib/firebase/firestore";
 import { Question, QuestionDifficulty, QuestionStatus } from "@/types";
@@ -113,6 +114,30 @@ export async function getQuestionById(id: string): Promise<Question | null> {
   } catch (error) {
     console.error(`Error fetching question ${id}:`, error);
     return null;
+  }
+}
+
+/**
+ * Fetches multiple questions by their IDs efficiently using chunked Firestore 'in' queries.
+ */
+export async function getQuestionsByIds(ids: string[]): Promise<Question[]> {
+  if (!ids || ids.length === 0) return [];
+  const results: Question[] = [];
+  const uniqueIds = Array.from(new Set(ids));
+
+  try {
+    for (let i = 0; i < uniqueIds.length; i += 30) {
+      const chunk = uniqueIds.slice(i, i + 30);
+      const q = query(questionsCol(), where(documentId(), "in", chunk));
+      const snap = await getDocs(q);
+      snap.docs.forEach((d) => {
+        results.push({ id: d.id, ...d.data() } as Question);
+      });
+    }
+    return results;
+  } catch (error) {
+    console.error("Error fetching questions by IDs:", error);
+    return [];
   }
 }
 

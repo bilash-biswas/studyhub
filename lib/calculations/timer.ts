@@ -37,3 +37,20 @@ export function calculateExamTimer({
     progressPercentage,
   };
 }
+
+/**
+ * Formats a duration in seconds into a human-readable mm:ss (or hh:mm:ss) string.
+ */
+export function formatTimer(seconds: number): string {
+  if (isNaN(seconds) || seconds <= 0) return "00:00";
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSecs = Math.floor(seconds % 60);
+
+  const pad = (n: number) => n.toString().padStart(2, "0");
+
+  if (hours > 0) {
+    return `${pad(hours)}:${pad(minutes)}:${pad(remainingSecs)}`;
+  }
+  return `${pad(minutes)}:${pad(remainingSecs)}`;
+}

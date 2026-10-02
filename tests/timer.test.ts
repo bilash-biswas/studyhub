@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calculateExamTimer } from "../lib/calculations/timer";
+import { calculateExamTimer, formatTimer } from "../lib/calculations/timer";
 
 describe("calculateExamTimer", () => {
   it("calculates initial timer correctly", () => {
@@ -69,5 +69,23 @@ describe("calculateExamTimer", () => {
     expect(result.elapsedSeconds).toBe(2000);
     expect(result.isExpired).toBe(true);
     expect(result.progressPercentage).toBe(100);
+  });
+});
+
+describe("formatTimer", () => {
+  it("formats zero and negative seconds as 00:00", () => {
+    expect(formatTimer(0)).toBe("00:00");
+    expect(formatTimer(-10)).toBe("00:00");
+  });
+
+  it("formats standard minutes and seconds", () => {
+    expect(formatTimer(5)).toBe("00:05");
+    expect(formatTimer(65)).toBe("01:05");
+    expect(formatTimer(599)).toBe("09:59");
+  });
+
+  it("formats hours, minutes, and seconds when >= 3600 seconds", () => {
+    expect(formatTimer(3600)).toBe("01:00:00");
+    expect(formatTimer(3665)).toBe("01:01:05");
   });
 });

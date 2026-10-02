@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Question, Exam, Subject, AttemptAnswer } from "@/types";
-import { getQuestions, seedSampleQuestions } from "@/lib/services/question-service";
+import { getQuestions, getQuestionsByIds, seedSampleQuestions } from "@/lib/services/question-service";
 import { selectQuestions } from "@/lib/calculations/question-selection";
 import { getExamById } from "@/lib/services/exam-service";
 import { getSubjectById } from "@/lib/services/subject-service";
@@ -61,34 +61,48 @@ export default function PracticeSessionPage() {
           setSubject(sub);
         }
 
-        // Fetch published questions matching filters
-        const filters: any = { status: "published" };
-        if (config.examId) filters.examId = config.examId;
-        if (config.subjectId) filters.subjectId = config.subjectId;
-        if (config.difficulty && config.difficulty !== "all") {
-          filters.difficulty = config.difficulty;
-        }
-
-        let res = await getQuestions(filters, 50);
-
-        // If pool is empty, auto-seed sample questions and refetch
-        if (res.questions.length === 0) {
-          await seedSampleQuestions(user?.uid || "system");
-          res = await getQuestions({ status: "published" }, 50);
-        }
-
-        // Deterministically select N questions using Fisher-Yates shuffle
-        const selected = selectQuestions(res.questions, {
-          count: config.count,
-          examId: config.examId,
-          subjectId: config.subjectId,
-          difficulty: config.difficulty,
-        });
-
-        if (selected.length === 0) {
-          setErrorMsg("No questions found matching your selected criteria. Try another subject.");
+        // If explicit question IDs are provided (e.g. practicing mistakes or bookmarks)
+        if (
+          (config as any).questionIds &&
+          Array.isArray((config as any).questionIds) &&
+          (config as any).questionIds.length > 0
+        ) {
+          const targeted = await getQuestionsByIds((config as any).questionIds);
+          if (targeted.length === 0) {
+            setErrorMsg("Could not load the targeted practice questions.");
+          } else {
+            setQuestions(targeted);
+          }
         } else {
-          setQuestions(selected);
+          // Fetch published questions matching filters
+          const filters: any = { status: "published" };
+          if (config.examId) filters.examId = config.examId;
+          if (config.subjectId) filters.subjectId = config.subjectId;
+          if (config.difficulty && config.difficulty !== "all") {
+            filters.difficulty = config.difficulty;
+          }
+
+          let res = await getQuestions(filters, 50);
+
+          // If pool is empty, auto-seed sample questions and refetch
+          if (res.questions.length === 0) {
+            await seedSampleQuestions(user?.uid || "system");
+            res = await getQuestions({ status: "published" }, 50);
+          }
+
+          // Deterministically select N questions using Fisher-Yates shuffle
+          const selected = selectQuestions(res.questions, {
+            count: config.count,
+            examId: config.examId,
+            subjectId: config.subjectId,
+            difficulty: config.difficulty,
+          });
+
+          if (selected.length === 0) {
+            setErrorMsg("No questions found matching your selected criteria. Try another subject.");
+          } else {
+            setQuestions(selected);
+          }
         }
       } catch (err: any) {
         console.error("Session initialization failed:", err);
