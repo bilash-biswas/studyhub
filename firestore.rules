@@ -16,19 +16,17 @@ service cloud.firestore {
     }
     
     function isAdmin() {
-      return isAuthenticated() && getUserData().role == 'admin' && getUserData().isActive == true;
+      return isAuthenticated() 
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && getUserData().role == 'admin';
     }
 
     // 1. Users Collection
     match /users/{userId} {
       allow read: if isAuthenticated();
-      // Allow user creation on registration with role locked to 'user'
-      allow create: if isOwner(userId) 
-        && request.resource.data.role == 'user' 
-        && request.resource.data.isActive == true;
-      // Normal users cannot modify their own role, isActive, or creation date
-      allow update: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'isActive', 'createdAt']))
-                   || isAdmin();
+      // Allow user creation on registration / initial login
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
       
       // User Subcollections

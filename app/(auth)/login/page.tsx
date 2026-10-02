@@ -135,6 +135,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
+                autoComplete="email"
                 placeholder="name@example.com"
                 className="pl-9"
                 error={errors.email?.message}
@@ -159,6 +160,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
                 placeholder="••••••••"
                 className="pl-9 pr-10"
                 error={errors.password?.message}

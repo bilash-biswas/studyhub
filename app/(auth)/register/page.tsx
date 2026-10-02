@@ -137,6 +137,7 @@ export default function RegisterPage() {
               <Input
                 id="name"
                 type="text"
+                autoComplete="name"
                 placeholder="e.g. Bilash Hossain"
                 className="pl-9"
                 error={errors.name?.message}
@@ -153,6 +154,7 @@ export default function RegisterPage() {
               <Input
                 id="email"
                 type="email"
+                autoComplete="email"
                 placeholder="name@example.com"
                 className="pl-9"
                 error={errors.email?.message}
@@ -169,6 +171,7 @@ export default function RegisterPage() {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
                 placeholder="At least 6 characters"
                 className="pl-9 pr-10"
                 error={errors.password?.message}
@@ -194,6 +197,7 @@ export default function RegisterPage() {
               <Input
                 id="confirmPassword"
                 type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
                 placeholder="Re-enter your password"
                 className="pl-9"
                 error={errors.confirmPassword?.message}
