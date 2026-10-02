@@ -38,7 +38,7 @@ export default function AuthLayout({
               <GraduationCap className="h-6 w-6" />
             </div>
             <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-              Study<span className="text-[#4F46E5] dark:text-[#818CF8]">Hub</span>
+              Medha<span className="text-[#4F46E5] dark:text-[#818CF8]">vi</span>
             </span>
           </Link>
           <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
@@ -51,7 +51,7 @@ export default function AuthLayout({
 
       {/* Footer */}
       <div className="w-full max-w-md mx-auto text-center text-xs text-slate-400 dark:text-slate-500">
-        <p>© {new Date().getFullYear()} StudyHub Bangladesh. 100% Free for all students.</p>
+        <p>© {new Date().getFullYear()} Medhavi Bangladesh (মেধাবী). 100% Free for all students.</p>
       </div>
     </div>
   );

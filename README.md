@@ -1,4 +1,4 @@
-# StudyHub (স্টাডিহাব)
+# Medhavi (মেধাবী)
 
 > **"Practice. Improve. Succeed."**  
 > *A collaborative, high-performance competitive exam preparation platform for Bangladesh.*
@@ -15,7 +15,7 @@
 
 ## 📖 Overview
 
-**StudyHub** is an academic SaaS platform engineered specifically for students and job candidates in Bangladesh preparing for:
+**Medhavi (মেধাবী)** is an academic SaaS platform engineered specifically for students and job candidates in Bangladesh preparing for:
 
 - **BCS (Bangladesh Civil Service)** Preliminary & Written examinations
 - **Government & Private Bank Job** Officer & Senior Officer recruitments
@@ -28,9 +28,9 @@ The application delivers seamless rendering of mixed **Bengali Unicode** and com
 
 ## ⚡ Strict $0 / 0 BDT Free-Tier Architecture
 
-StudyHub is engineered from the ground up to operate in production at approximately **$0 infrastructure cost** by adhering to free-tier quotas:
+Medhavi is engineered from the ground up to operate in production at approximately **$0 infrastructure cost** by adhering to free-tier quotas:
 
-| Service | Free-Tier Limits | StudyHub Architectural Optimization |
+| Service | Free-Tier Limits | Medhavi Architectural Optimization |
 |---|---|---|
 | **Vercel Hobby** | Unlimited deployments, global edge CDN | Next.js App Router, Turbopack, static page generation |
 | **Firebase Auth** | 50,000 MAU | Email/Password & Google Sign-In with client-side session persistence |
@@ -172,7 +172,7 @@ The repository includes:
 
 1. Push your repository to **GitHub**.
 2. Go to [Vercel](https://vercel.com/) and click **"New Project"**.
-3. Import your StudyHub GitHub repository.
+3. Import your Medhavi GitHub repository.
 4. Add the environment variables from your `.env.local` file into Vercel Project Settings.
 5. Click **Deploy**. Vercel will build the application using Next.js Turbopack and deploy to your custom `*.vercel.app` domain at **$0 / month**.
 

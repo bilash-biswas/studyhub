@@ -18,7 +18,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Read saved preference from localStorage
-    const saved = localStorage.getItem("studyhub_theme") as Theme | null;
+    const saved = (localStorage.getItem("medhavi_theme") ||
+      localStorage.getItem("studyhub_theme")) as Theme | null;
     if (saved && (saved === "light" || saved === "dark" || saved === "system")) {
       setThemeState(saved);
     }
@@ -60,7 +61,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem("studyhub_theme", newTheme);
+    localStorage.setItem("medhavi_theme", newTheme);
   };
 
   return (

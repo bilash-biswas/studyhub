@@ -25,7 +25,7 @@ export default function HomePage() {
               <GraduationCap className="h-5 w-5" />
             </div>
             <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-              Study<span className="text-[#4F46E5] dark:text-[#818CF8]">Hub</span>
+              Medha<span className="text-[#4F46E5] dark:text-[#818CF8]">vi</span>
             </span>
           </Link>
 
@@ -212,7 +212,7 @@ export default function HomePage() {
             Independent Education Platform
           </div>
           <p>
-            StudyHub is an independent study aid designed for candidate skill enhancement. StudyHub is not affiliated with, authorized, or endorsed by the Bangladesh Public Service Commission (BPSC), Bangladesh Bank, the Ministry of Education, or any government examination body.
+            Medhavi is an independent study aid designed for candidate skill enhancement. Medhavi is not affiliated with, authorized, or endorsed by the Bangladesh Public Service Commission (BPSC), Bangladesh Bank, the Ministry of Education, or any government examination body.
           </p>
         </div>
       </section>
@@ -222,7 +222,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
           <div className="flex items-center gap-2">
             <GraduationCap className="h-4 w-4 text-[#4F46E5] dark:text-[#818CF8]" />
-            <span className="font-semibold text-slate-700 dark:text-slate-300">StudyHub</span>
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Medhavi</span>
             <span>— Practice. Improve. Succeed.</span>
           </div>
           <div className="flex items-center gap-4">

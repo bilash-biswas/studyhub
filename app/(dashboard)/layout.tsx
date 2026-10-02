@@ -72,7 +72,7 @@ export default function DashboardLayout({
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0F172A]">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
-          <p className="text-xs text-slate-500 font-medium">Loading StudyHub workspace...</p>
+          <p className="text-xs text-slate-500 font-medium">Loading Medhavi workspace...</p>
         </div>
       </div>
     );
@@ -93,7 +93,7 @@ export default function DashboardLayout({
               <GraduationCap className="h-4 w-4" />
             </div>
             <span className="text-base font-bold tracking-tight text-slate-900 dark:text-slate-100">
-              Study<span className="text-[#4F46E5] dark:text-[#818CF8]">Hub</span>
+              Medha<span className="text-[#4F46E5] dark:text-[#818CF8]">vi</span>
             </span>
           </Link>
           <ThemeToggle />
@@ -103,7 +103,7 @@ export default function DashboardLayout({
         <div className="p-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-semibold flex items-center justify-center text-xs shrink-0 border border-indigo-200 dark:border-indigo-800">
-              {profile?.name ? profile.name.slice(0, 2).toUpperCase() : "SH"}
+              {profile?.name ? profile.name.slice(0, 2).toUpperCase() : "MD"}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold truncate text-slate-900 dark:text-slate-100">
@@ -171,7 +171,7 @@ export default function DashboardLayout({
             <div className="h-7 w-7 rounded-lg bg-[#4F46E5] text-white flex items-center justify-center">
               <GraduationCap className="h-4 w-4" />
             </div>
-            <span className="text-sm font-bold tracking-tight">StudyHub</span>
+            <span className="text-sm font-bold tracking-tight">Medhavi</span>
           </div>
 
           <div className="flex items-center gap-2">

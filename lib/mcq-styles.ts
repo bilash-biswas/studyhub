@@ -1,5 +1,5 @@
 /**
- * StudyHub Centralized MCQ & Exam Palette Style Tokens
+ * Medhavi Centralized MCQ & Exam Palette Style Tokens
  * Implements the strict Indigo + Sky + Emerald + Amber + Red + Slate visual system.
  */
 

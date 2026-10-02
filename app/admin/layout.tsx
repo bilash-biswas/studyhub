@@ -96,7 +96,7 @@ export default function AdminLayout({
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                StudyHub
+                Medhavi
               </span>
               <span className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
                 Admin Panel

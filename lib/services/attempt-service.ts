@@ -77,11 +77,8 @@ export async function recordAttempt(input: CreateAttemptInput): Promise<string> 
   const newAttemptRef = doc(attemptsCol());
   const attemptId = newAttemptRef.id;
 
-  const attemptData: Omit<Attempt, "id"> = {
+  const attemptData: Record<string, any> = {
     userId: input.userId,
-    examId: input.examId,
-    subjectId: input.subjectId,
-    mockTestId: input.mockTestId,
     mode: input.mode,
     totalQuestions,
     answeredQuestions,
@@ -96,9 +93,24 @@ export async function recordAttempt(input: CreateAttemptInput): Promise<string> 
     startedAt: timestamp,
     submittedAt: timestamp,
     durationSeconds: input.durationSeconds,
-    answers: input.answers,
+    answers: input.answers.map((ans) => ({
+      questionId: ans.questionId,
+      selectedOptionId: ans.selectedOptionId ?? null,
+      isCorrect: Boolean(ans.isCorrect),
+      timeSpentSeconds: ans.timeSpentSeconds ?? 0,
+    })),
     createdAt: timestamp,
   };
+
+  if (input.examId) {
+    attemptData.examId = input.examId;
+  }
+  if (input.subjectId) {
+    attemptData.subjectId = input.subjectId;
+  }
+  if (input.mockTestId) {
+    attemptData.mockTestId = input.mockTestId;
+  }
 
   const batch = writeBatch(db);
   batch.set(newAttemptRef, attemptData);
@@ -131,15 +143,20 @@ export async function recordAttempt(input: CreateAttemptInput): Promise<string> 
         todayDate: getFormattedDate(),
       });
 
-      batch.update(userDoc(input.userId), {
+      const userUpdatePayload: Record<string, any> = {
         totalAttempts: increment(1),
         totalQuestionsAnswered: increment(answeredQuestions),
         totalCorrect: increment(correctAnswers),
         currentStreak: streakRes.currentStreak,
         longestStreak: streakRes.longestStreak,
-        lastPracticeDate: streakRes.lastPracticeDate,
         updatedAt: timestamp,
-      });
+      };
+
+      if (streakRes.lastPracticeDate) {
+        userUpdatePayload.lastPracticeDate = streakRes.lastPracticeDate;
+      }
+
+      batch.update(userDoc(input.userId), userUpdatePayload);
     }
   } catch (err) {
     console.warn("Could not batch update user profile streak:", err);

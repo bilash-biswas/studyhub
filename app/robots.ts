@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/admin/", "/results/"],
     },
-    sitemap: "https://studyhub.vercel.app/sitemap.xml",
+    sitemap: "https://medhavi-nine.vercel.app/sitemap.xml",
   };
 }
