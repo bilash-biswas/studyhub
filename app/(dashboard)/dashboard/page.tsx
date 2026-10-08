@@ -88,7 +88,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-20">
+    <div className="w-full space-y-6 pb-20">
       {/* Welcome Banner */}
       <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5 bg-linear-to-r from-white via-indigo-50/20 to-white dark:from-[#111827] dark:via-indigo-950/20 dark:to-[#111827]">
         <div>

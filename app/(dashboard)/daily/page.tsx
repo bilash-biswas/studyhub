@@ -152,7 +152,7 @@ export default function DailyChallengePage() {
   return (
     <div className="space-y-4">
       {/* Top Banner */}
-      <div className="max-w-4xl mx-auto bg-linear-to-r from-amber-50 via-white to-amber-50 dark:from-amber-950/20 dark:via-[#111827] dark:to-amber-950/20 p-4 rounded-xl border border-amber-200/80 dark:border-amber-900/60 shadow-xs flex items-center justify-between gap-4">
+      <div className="w-full bg-linear-to-r from-amber-50 via-white to-amber-50 dark:from-amber-950/20 dark:via-[#111827] dark:to-amber-950/20 p-4 rounded-xl border border-amber-200/80 dark:border-amber-900/60 shadow-xs flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
             <Flame className="h-5 w-5 fill-current" />

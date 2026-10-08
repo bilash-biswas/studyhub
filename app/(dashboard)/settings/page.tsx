@@ -32,7 +32,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-20">
+    <div className="w-full space-y-6 pb-20">
       {/* Header Banner */}
       <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs">
         <div className="flex items-center gap-2 mb-1">

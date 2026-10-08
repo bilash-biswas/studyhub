@@ -340,7 +340,7 @@ export default function LiveRoomArenaPage() {
   const optionLetters = ["A", "B", "C", "D"];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4 pb-20">
+    <div className="w-full space-y-4 pb-20">
       {/* Top Arena Bar */}
       <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between gap-4">
         <div>
