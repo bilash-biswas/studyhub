@@ -106,7 +106,7 @@ export default function DashboardPage() {
             Welcome back, {profile?.name || user?.displayName || "Candidate"}!
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-lg">
-            Bangladesh Civil Service (BCS), Bank Recruitment, and HSC Exam Preparation Platform.
+            Bangladesh Civil Service (BCS), Bank Recruitment, and Government Career Preparation Platform.
           </p>
         </div>
 

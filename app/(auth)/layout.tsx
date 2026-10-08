@@ -24,7 +24,7 @@ export default function AuthLayout({
             <span>•</span>
             <span>Bank</span>
             <span>•</span>
-            <span>HSC</span>
+            <span>Govt Jobs</span>
           </div>
           <ThemeToggle />
         </div>

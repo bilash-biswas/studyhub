@@ -252,7 +252,7 @@ export async function updateQuestionStatus(
 }
 
 /**
- * Seeds sample questions across BCS, Bank, and HSC with KaTeX math and Bengali content
+ * Seeds sample questions across BCS, Bank, and Govt Job Recruitment with KaTeX math and Bengali content
  */
 export const SAMPLE_QUESTIONS: Omit<Question, "createdAt" | "updatedAt">[] = [
   // 1. BCS ICT - Subnetting with math notation
@@ -347,11 +347,11 @@ export const SAMPLE_QUESTIONS: Omit<Question, "createdAt" | "updatedAt">[] = [
     createdBy: "system",
     updatedBy: "system",
   },
-  // 5. HSC ICT - Number System
+  // 5. Govt Jobs / Primary ICT - Number System
   {
-    id: "q_hsc_ict_01",
-    examId: "exam_hsc",
-    subjectId: "sub_hsc_ict",
+    id: "q_govt_ict_01",
+    examId: "exam_govt_jobs",
+    subjectId: "sub_govt_science_ict",
     question: "$(1101)_2$ বাইনারি সংখ্যার সমতুল্য দশমিক (Decimal) মান কত?",
     options: [
       { id: "a", text: "$11$" },
@@ -364,8 +364,8 @@ export const SAMPLE_QUESTIONS: Omit<Question, "createdAt" | "updatedAt">[] = [
       "$(1101)_2 = 1 \\times 2^3 + 1 \\times 2^2 + 0 \\times 2^1 + 1 \\times 2^0 = 8 + 4 + 0 + 1 = 13$।",
     difficulty: "easy",
     year: 2023,
-    source: "Dhaka Board 2023",
-    tags: ["number-system", "binary", "hsc-ict"],
+    source: "Primary Assistant Teacher Recruitment 2023",
+    tags: ["number-system", "binary", "govt-ict"],
     status: "published",
     createdBy: "system",
     updatedBy: "system",

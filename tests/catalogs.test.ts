@@ -4,11 +4,11 @@ import { examSchema, subjectSchema } from "../lib/validations/catalogs";
 
 describe("Catalog Models & Validation", () => {
   describe("DEFAULT_CATALOGS Structure", () => {
-    it("contains the 3 primary Bangladesh exam tracks: BCS, Bank Job, and HSC", () => {
+    it("contains the 3 primary Bangladesh career exam tracks: BCS, Bank Job, and Govt Jobs", () => {
       const slugs = DEFAULT_CATALOGS.map((e) => e.slug);
       expect(slugs).toContain("bcs");
       expect(slugs).toContain("bank-job");
-      expect(slugs).toContain("hsc");
+      expect(slugs).toContain("govt-jobs");
     });
 
     it("has unique exam IDs and slugs", () => {

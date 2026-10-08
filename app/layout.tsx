@@ -26,14 +26,14 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Medhavi (মেধাবী) — Practice. Improve. Succeed.",
   description:
-    "Collaborative online exam-preparation platform for BCS, Bank Job, and HSC candidates in Bangladesh.",
+    "Collaborative competitive exam preparation platform for BCS, Bank Job, and Government Career candidates in Bangladesh.",
   manifest: "/manifest.json",
   icons: { icon: "/favicon.ico" },
-  keywords: ["BCS", "Bank Job", "HSC", "Exam Preparation", "MCQ Practice", "Bangladesh", "Mock Test", "Medhavi"],
+  keywords: ["BCS", "Bank Job", "Primary Teacher", "Govt Job", "BPSC", "Exam Preparation", "MCQ Practice", "Bangladesh", "Mock Test", "Medhavi"],
   authors: [{ name: "Medhavi Team" }],
   openGraph: {
     title: "Medhavi (মেধাবী) — Practice. Improve. Succeed.",
-    description: "Bangladesh Civil Service, Bank Job, and HSC competitive exam preparation SaaS.",
+    description: "Bangladesh Civil Service, Bank Job, and Government Career competitive exam preparation SaaS.",
     type: "website",
   },
 };

@@ -37,7 +37,7 @@ export async function getExams(includeInactive: boolean = false): Promise<Exam[]
 }
 
 /**
- * Fetches a single exam by slug (e.g. "bcs", "bank-job", "hsc")
+ * Fetches a single exam by slug (e.g. "bcs", "bank-job", "govt-jobs")
  */
 export async function getExamBySlug(slug: string): Promise<Exam | null> {
   try {

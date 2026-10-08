@@ -76,7 +76,7 @@ export default function RegisterPage() {
           Create an account
         </CardTitle>
         <CardDescription className="text-center text-xs">
-          Join thousands of students preparing for BCS, Bank & HSC exams
+          Join thousands of candidates preparing for BCS, Bank & Govt Job exams
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

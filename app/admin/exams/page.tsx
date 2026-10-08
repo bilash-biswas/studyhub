@@ -92,7 +92,7 @@ export default function AdminExamsPage() {
             Exam Track Management
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Configure competitive target tracks (BCS, Bank Recruitment, HSC Board Exams).
+            Configure competitive target tracks (BCS, Bank Recruitment, Primary & Govt Jobs).
           </p>
         </div>
 

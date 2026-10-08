@@ -1,7 +1,7 @@
 {
   "name": "Medhavi — Practice. Improve. Succeed.",
   "short_name": "Medhavi",
-  "description": "Collaborative online exam-preparation platform for BCS, Bank Job, and HSC candidates in Bangladesh.",
+  "description": "Collaborative online exam-preparation platform for BCS, Bank Job, and Government Career candidates in Bangladesh.",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#0F172A",

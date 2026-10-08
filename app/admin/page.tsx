@@ -187,7 +187,7 @@ export default function AdminDashboardPage() {
                 Exam Categories
               </CardTitle>
               <CardDescription className="text-xs">
-                Configure BCS, Bank Job, HSC, and add future tracks like Admission and NTRCA.
+                Configure BCS, Bank Job, Primary & Govt Jobs, and add future recruitment tracks.
               </CardDescription>
             </CardHeader>
           </Card>

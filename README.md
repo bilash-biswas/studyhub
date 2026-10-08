@@ -19,8 +19,8 @@
 
 - **BCS (Bangladesh Civil Service)** Preliminary & Written examinations
 - **Government & Private Bank Job** Officer & Senior Officer recruitments
-- **HSC Board Examinations** (Science & General tracks)
-- **University Admission & Competitive Tests**
+- **Primary Assistant Teacher (DPE) & NTRCA Teacher Registration**
+- **Non-Cadre & 9th–20th Grade Ministry Recruitments**
 
 The application delivers seamless rendering of mixed **Bengali Unicode** and complex **LaTeX mathematical equations** (`$x^2 + y^2 = r^2$`), server-anchored timed mock exams with official negative marking rules, real-time live quiz arenas, weak-area diagnostic recommendations, and a daily challenge streak engine.
 

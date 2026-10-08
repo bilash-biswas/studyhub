@@ -77,7 +77,7 @@ export default function HomePage() {
           </h1>
 
           <p className="mt-6 text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            Prepare for <strong>BCS Preliminary</strong>, <strong>Bank Job Recruitment</strong>, and <strong>HSC Board</strong> exams with structured MCQ practice, timestamp-anchored mock tests, weakness analytics, and real-time live quizzes.
+            Prepare for <strong>BCS Preliminary</strong>, <strong>Bank Job Recruitment</strong>, and <strong>Primary & Govt. Job</strong> exams with structured MCQ practice, timestamp-anchored mock tests, weakness analytics, and real-time live quizzes.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -104,7 +104,7 @@ export default function HomePage() {
               Combined 8 & 10 Banks Officer
             </span>
             <span className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs text-slate-800 dark:text-slate-200">
-              HSC Science & Commerce
+              Primary & Govt Non-Cadre (প্রাথমিক ও নন-ক্যাডার)
             </span>
           </div>
         </div>

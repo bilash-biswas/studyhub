@@ -1,7 +1,7 @@
 export interface Exam {
   id: string;
-  name: string; // e.g. "BCS (Civil Service)", "Bank Job Recruitment", "HSC Examination"
-  slug: string; // "bcs", "bank-job", "hsc"
+  name: string; // e.g. "BCS (Civil Service)", "Bank Job Recruitment", "Primary & Govt Jobs"
+  slug: string; // "bcs", "bank-job", "govt-jobs"
   description?: string;
   icon?: string;
   order: number;

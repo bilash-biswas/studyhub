@@ -137,23 +137,23 @@ export async function seedSampleMockTests(availableQuestionIds: string[]): Promi
       isPublished: true,
     };
 
-    const hscTest: Omit<MockTest, "id" | "createdAt" | "updatedAt"> = {
-      examId: "exam_hsc",
-      title: "HSC Board Exam Model Test (Higher Math & ICT)",
-      description: "Standard model test strictly adhering to NCTB syllabus and question patterns. No negative marking.",
-      durationMinutes: 25,
-      totalQuestions: availableQuestionIds.length > 0 ? Math.min(15, availableQuestionIds.length) : 10,
-      questionIds: availableQuestionIds.slice(0, 15),
+    const govtTest: Omit<MockTest, "id" | "createdAt" | "updatedAt"> = {
+      examId: "exam_govt_jobs",
+      title: "Primary Assistant Teacher Recruitment Model Test 01",
+      description: "Recruitment model test strictly adhering to Directorate of Primary Education (DPE) 80-mark syllabus. Negative marking: 0.25 per wrong answer.",
+      durationMinutes: 60,
+      totalQuestions: availableQuestionIds.length > 0 ? Math.min(20, availableQuestionIds.length) : 10,
+      questionIds: availableQuestionIds.slice(0, 20),
       correctMark: 1.0,
-      wrongMark: 0,
-      passPercentage: 33,
+      wrongMark: 0.25,
+      passPercentage: 50,
       isPublished: true,
     };
 
     await Promise.all([
       createMockTest(bcsTest, "mock_bcs_01"),
       createMockTest(bankTest, "mock_bank_01"),
-      createMockTest(hscTest, "mock_hsc_01"),
+      createMockTest(govtTest, "mock_govt_01"),
     ]);
   } catch (error) {
     console.error("Error seeding sample mock tests:", error);
