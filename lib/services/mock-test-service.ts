@@ -125,7 +125,7 @@ export async function seedSampleMockTests(availableQuestionIds: string[]): Promi
     };
 
     const bankTest: Omit<MockTest, "id" | "createdAt" | "updatedAt"> = {
-      examId: "exam_bank",
+      examId: "exam_bank_job",
       title: "Combined 8 Banks Officer (Cash) Model Test 01",
       description: "Recruitment model test for Senior Officer and Officer (Cash). Negative marking: 0.25 per wrong answer.",
       durationMinutes: 30,
