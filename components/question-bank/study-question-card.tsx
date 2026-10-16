@@ -65,12 +65,9 @@ export function StudyQuestionCard({
 
   // Sync when parent changes the global reveal state
   useEffect(() => {
-    if (defaultRevealed) {
-      setIsRevealed(true);
-    } else if (!selectedOptionId) {
-      setIsRevealed(false);
-    }
-  }, [defaultRevealed, selectedOptionId]);
+    setIsRevealed(defaultRevealed);
+  }, [defaultRevealed]);
+
 
   const toggleReveal = () => {
     setIsRevealed((prev) => !prev);

@@ -111,7 +111,15 @@ export default function MistakeBankPage() {
     }
   };
 
+  const handleAnswerSelect = (questionId: string, optionId: string) => {
+    setUserAnswersMap((prev) => ({
+      ...prev,
+      [questionId]: optionId,
+    }));
+  };
+
   const handlePracticeQuestions = (targetQuestions: Question[]) => {
+
     if (targetQuestions.length === 0) return;
     const newSessionId = `mistakes_${Date.now()}`;
     const config = {
@@ -304,9 +312,11 @@ export default function MistakeBankPage() {
                 subjectName={subjectMap.get(q.subjectId)}
                 defaultRevealed={globalRevealed}
                 initialSelectedOptionId={userAns}
+                onAnswerSelect={(optId) => handleAnswerSelect(q.id, optId)}
                 showPracticeSingle={true}
                 onPracticeSingle={(targetQ) => handlePracticeQuestions([targetQ])}
               />
+
             );
           })}
         </div>
