@@ -29,6 +29,10 @@ import {
 // BCS Preliminary Batches sorted newest to oldest
 const BCS_BATCHES = [
   { id: "", label: "সব বিসিএস ব্যাচ (All Batches)" },
+  { id: "50th-bcs", label: "৫০তম বিসিএস (50th BCS)" },
+  { id: "49th-bcs", label: "৪৯তম বিসিএস (49th BCS)" },
+  { id: "48th-bcs", label: "৪৮তম বিসিএস (48th BCS)" },
+  { id: "47th-bcs", label: "৪৭তম বিসিএস (47th BCS)" },
   { id: "46th-bcs", label: "৪৬তম বিসিএস (46th BCS)" },
   { id: "45th-bcs", label: "৪৫তম বিসিএস (45th BCS)" },
   { id: "44th-bcs", label: "৪৪তম বিসিএস (44th BCS)" },
