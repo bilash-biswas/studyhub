@@ -22,6 +22,8 @@ import {
   BookMarked,
   Lightbulb,
   GraduationCap,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 // BCS Preliminary Batches sorted newest to oldest
@@ -83,8 +85,8 @@ export default function QuestionBankStudyPage() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // Study Mode State: "reading" (book mode) vs "self_quiz" (active recall)
-  const [studyMode, setStudyMode] = useState<"reading" | "self_quiz">("reading");
+  // Default state: Answers are hidden until clicked on each card, with a master switch
+  const [autoRevealAll, setAutoRevealAll] = useState<boolean>(false);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -272,32 +274,32 @@ export default function QuestionBankStudyPage() {
           </p>
         </div>
 
-        {/* Study Mode Toggle Buttons */}
+        {/* Reveal Answer Master Switch */}
         <div className="flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700/80 shrink-0 self-start md:self-auto">
           <button
             type="button"
-            onClick={() => setStudyMode("reading")}
+            onClick={() => setAutoRevealAll(false)}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-              studyMode === "reading"
+              !autoRevealAll
                 ? "bg-white dark:bg-[#111827] text-indigo-600 dark:text-indigo-400 shadow-xs"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
             }`}
           >
-            <BookMarked className="h-3.5 w-3.5" />
-            <span>📖 অধ্যয়ন মোড (Reading)</span>
+            <EyeOff className="h-3.5 w-3.5" />
+            <span>উত্তর লুকানো (স্ব-মূল্যায়ন)</span>
           </button>
 
           <button
             type="button"
-            onClick={() => setStudyMode("self_quiz")}
+            onClick={() => setAutoRevealAll(true)}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-              studyMode === "self_quiz"
+              autoRevealAll
                 ? "bg-white dark:bg-[#111827] text-indigo-600 dark:text-indigo-400 shadow-xs"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
             }`}
           >
-            <Lightbulb className="h-3.5 w-3.5" />
-            <span>💡 অনুশীলন মোড (Self-Quiz)</span>
+            <Eye className="h-3.5 w-3.5" />
+            <span>সব উত্তর একবারে দেখান</span>
           </button>
         </div>
       </div>
@@ -462,7 +464,7 @@ export default function QuestionBankStudyPage() {
               key={question.id}
               index={(currentPage - 1) * pageSize + idx}
               question={question}
-              studyMode={studyMode}
+              defaultRevealed={autoRevealAll}
               isBookmarked={bookmarkedIds.has(question.id)}
               onToggleBookmark={handleToggleBookmark}
               subjectName={subjectMap.get(question.subjectId)}
