@@ -8,6 +8,7 @@ import {
   getUserMistakeQuestionIds,
   removeMistake,
 } from "@/lib/services/analytics-service";
+import { getUserRecordedAnswers } from "@/lib/services/attempt-service";
 import { getQuestionsByIds } from "@/lib/services/question-service";
 import { getExams } from "@/lib/services/exam-service";
 import { getSubjects } from "@/lib/services/subject-service";
@@ -15,19 +16,15 @@ import {
   getUserBookmarkIds,
   toggleBookmark,
 } from "@/lib/services/bookmark-service";
-import { MathText } from "@/components/ui/math-text";
+import { StudyQuestionCard } from "@/components/question-bank/study-question-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   AlertTriangle,
   Sparkles,
   Search,
-  Bookmark,
-  Trash2,
-  ChevronDown,
-  ChevronUp,
-  CheckCircle2,
-  Lightbulb,
+  Eye,
+  EyeOff,
   Filter,
 } from "lucide-react";
 
@@ -39,9 +36,8 @@ export default function MistakeBankPage() {
   const [exams, setExams] = useState<Exam[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
-  const [expandedExplanations, setExpandedExplanations] = useState<Set<string>>(
-    new Set()
-  );
+  const [userAnswersMap, setUserAnswersMap] = useState<Record<string, string>>({});
+  const [globalRevealed, setGlobalRevealed] = useState(true);
 
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -53,17 +49,26 @@ export default function MistakeBankPage() {
       if (!user) return;
       setLoading(true);
       try {
-        const [examList, subjectList, mistakeIds, bookmarkIds] =
+        const [examList, subjectList, mistakeIds, bookmarkIds, recordedAnswers] =
           await Promise.all([
             getExams(),
             getSubjects(),
             getUserMistakeQuestionIds(user.uid),
             getUserBookmarkIds(user.uid),
+            getUserRecordedAnswers(user.uid),
           ]);
 
         setExams(examList);
         setSubjects(subjectList);
         setBookmarkedIds(new Set(bookmarkIds));
+
+        const answersMap: Record<string, string> = {};
+        Object.entries(recordedAnswers).forEach(([qId, ans]) => {
+          if (ans.selectedOptionId) {
+            answersMap[qId] = ans.selectedOptionId;
+          }
+        });
+        setUserAnswersMap(answersMap);
 
         if (mistakeIds.length > 0) {
           const loadedQuestions = await getQuestionsByIds(mistakeIds);
@@ -106,16 +111,6 @@ export default function MistakeBankPage() {
     }
   };
 
-  const toggleExplanation = (qId: string) => {
-    setExpandedExplanations((prev) => {
-      const next = new Set(prev);
-      if (next.has(qId)) next.delete(qId);
-      else next.add(qId);
-      return next;
-    });
-  };
-
-  // Launch practice session with mistake questions
   const handlePracticeQuestions = (targetQuestions: Question[]) => {
     if (targetQuestions.length === 0) return;
     const newSessionId = `mistakes_${Date.now()}`;
@@ -131,7 +126,6 @@ export default function MistakeBankPage() {
     router.push(`/practice/${newSessionId}`);
   };
 
-  // Filtered list
   const filteredQuestions = questions.filter((q) => {
     if (selectedExamId !== "all" && q.examId !== selectedExamId) return false;
     if (selectedDifficulty !== "all" && q.difficulty !== selectedDifficulty)
@@ -160,97 +154,116 @@ export default function MistakeBankPage() {
 
   return (
     <div className="w-full space-y-6 pb-20">
-      {/* Header Banner */}
-      <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* 1. Header Banner */}
+      <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
               <AlertTriangle className="h-4 w-4" />
             </span>
-            <span className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-              Targeted Correction
+            <span className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+              Active Recall
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            Mistake Bank (ভুল উত্তরের ব্যাংক)
+            Mistake Bank (ভুল প্রশ্নাবলি)
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
-            Questions you previously answered incorrectly. Practicing your mistakes is the fastest way to improve your exam scores.
+            যেসব প্রশ্নে আপনার ভুল উত্তর হয়েছিল সেগুলোর নিজস্ব রেকর্ড, সঠিক উত্তর ও পূর্ণ সমাধান।
           </p>
         </div>
 
-        {questions.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {/* Global Reveal / Hide Answer Toggle */}
           <Button
-            onClick={() => handlePracticeQuestions(filteredQuestions.length > 0 ? filteredQuestions : questions)}
-            className="bg-amber-600 hover:bg-amber-700 text-white text-xs gap-1.5 shrink-0 shadow-xs"
+            variant="outline"
+            size="sm"
+            onClick={() => setGlobalRevealed((prev) => !prev)}
+            className="text-xs gap-1.5 h-9 border-slate-200 dark:border-slate-750"
           >
-            <Sparkles className="h-3.5 w-3.5" />
-            Practice Mistakes ({filteredQuestions.length})
+            {globalRevealed ? (
+              <>
+                <EyeOff className="h-3.5 w-3.5 text-slate-500" />
+                <span>উত্তর লুকান (অনুশীলন)</span>
+              </>
+            ) : (
+              <>
+                <Eye className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                <span>সব উত্তর একবারে দেখান</span>
+              </>
+            )}
           </Button>
-        )}
+
+          {/* Practice All Mistakes */}
+          {questions.length > 0 && (
+            <Button
+              onClick={() => handlePracticeQuestions(filteredQuestions.length > 0 ? filteredQuestions : questions)}
+              className="bg-amber-600 hover:bg-amber-700 text-white text-xs gap-1.5 h-9 shadow-xs"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Drill Mistakes ({filteredQuestions.length})
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Filter and Search Bar */}
+      {/* 2. Filter and Search Bar */}
       <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">
-          {/* Search Box */}
           <div className="relative flex-1">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
             <Input
               type="text"
-              placeholder="Search by question text or tag (e.g. algebra, মুক্তিযুদ্ধ)..."
+              placeholder="ভুল প্রশ্নের টেক্সট বা বিষয় দিয়ে খুঁজুন..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 text-xs"
             />
           </div>
 
-          {/* Exam Filter */}
-          <select
-            value={selectedExamId}
-            onChange={(e) => setSelectedExamId(e.target.value)}
-            className="px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-900 dark:text-slate-100"
-          >
-            <option value="all">All Exams</option>
-            {exams.map((ex) => (
-              <option key={ex.id} value={ex.id}>
-                {ex.name}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedExamId}
+              onChange={(e) => setSelectedExamId(e.target.value)}
+              className="px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-900 dark:text-slate-100"
+            >
+              <option value="all">All Exams</option>
+              {exams.map((ex) => (
+                <option key={ex.id} value={ex.id}>
+                  {ex.name}
+                </option>
+              ))}
+            </select>
 
-          {/* Difficulty Filter */}
-          <select
-            value={selectedDifficulty}
-            onChange={(e) => setSelectedDifficulty(e.target.value)}
-            className="px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-900 dark:text-slate-100"
-          >
-            <option value="all">All Difficulties</option>
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-          </select>
+            <select
+              value={selectedDifficulty}
+              onChange={(e) => setSelectedDifficulty(e.target.value)}
+              className="px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-900 dark:text-slate-100"
+            >
+              <option value="all">All Difficulties</option>
+              <option value="easy">Easy (সহজ)</option>
+              <option value="medium">Medium (মধ্যম)</option>
+              <option value="hard">Hard (কঠিন)</option>
+            </select>
+          </div>
         </div>
 
-        {/* Count Indicator */}
         <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-          <span>
+          <div>
             Showing <strong className="text-slate-700 dark:text-slate-300">{filteredQuestions.length}</strong> of{" "}
             {questions.length} saved mistakes
-          </span>
-          {questions.length > 0 && (
-            <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
-              Solve and answer correctly to clear from bank
-            </span>
-          )}
+          </div>
+          <div className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+            💡 ভুলগুলো পুনরায় অনুশীলন করে সমাধান নিশ্চিত করুন
+          </div>
         </div>
       </div>
 
-      {/* Mistakes List */}
+      {/* 3. Mistakes List with StudyQuestionCard */}
       {filteredQuestions.length === 0 ? (
         <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center space-y-3">
           <div className="h-12 w-12 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 mx-auto flex items-center justify-center">
-            <CheckCircle2 className="h-6 w-6" />
+            <Sparkles className="h-6 w-6" />
           </div>
           <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
             {questions.length === 0
@@ -259,8 +272,8 @@ export default function MistakeBankPage() {
           </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             {questions.length === 0
-              ? "Outstanding performance! As you practice questions, any errors you make will be saved here for focused drill."
-              : "Try adjusting your search query or exam filter to find questions."}
+              ? "অভিনন্দন! আপনার অনুশীলনে কোনো ভুল সংরক্ষিত নেই। পরীক্ষা ও প্র্যাকটিসে কোনো প্রশ্ন ভুল হলে স্বয়ংক্রিয়ভাবে এখানে যুক্ত হবে।"
+              : "অন্য সার্চ ফিল্টার ব্যবহার করে দেখুন।"}
           </p>
           {questions.length === 0 && (
             <Button
@@ -277,150 +290,23 @@ export default function MistakeBankPage() {
         <div className="space-y-4">
           {filteredQuestions.map((q, idx) => {
             const isBookmarked = bookmarkedIds.has(q.id);
-            const isExplanationOpen = expandedExplanations.has(q.id);
-            const correctOpt = q.options.find(
-              (o) => o.id === q.correctOptionId
-            );
+            const userAns = userAnswersMap[q.id] || null;
 
             return (
-              <div
+              <StudyQuestionCard
                 key={q.id}
-                className="bg-white dark:bg-[#111827] rounded-xl border border-amber-200/70 dark:border-amber-950/70 shadow-xs overflow-hidden"
-              >
-                {/* Item Header */}
-                <div className="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800/80 bg-amber-50/30 dark:bg-amber-950/20 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-xs text-amber-700 dark:text-amber-400">
-                      #{idx + 1}
-                    </span>
-                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                      {subjectMap.get(q.subjectId) || "Subject"}
-                    </span>
-                    <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                        q.difficulty === "easy"
-                          ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
-                          : q.difficulty === "medium"
-                          ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
-                          : "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300"
-                      }`}
-                    >
-                      {q.difficulty}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {/* Bookmark */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleBookmark(q.id)}
-                      title={isBookmarked ? "Remove Bookmark" : "Save Bookmark"}
-                      className={`p-1.5 rounded-lg border text-xs transition-colors ${
-                        isBookmarked
-                          ? "bg-amber-50 border-amber-200 text-amber-600 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-400"
-                          : "bg-white border-slate-200 text-slate-400 hover:text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400"
-                      }`}
-                    >
-                      <Bookmark
-                        className={`h-3.5 w-3.5 ${
-                          isBookmarked ? "fill-current" : ""
-                        }`}
-                      />
-                    </button>
-
-                    {/* Remove from Mistake Bank */}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveMistake(q.id)}
-                      title="Remove from Mistake Bank"
-                      className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-red-600 hover:border-red-200 transition-colors"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Question Body */}
-                <div className="p-5 space-y-3">
-                  <div className="text-sm font-medium text-slate-900 dark:text-slate-100 leading-relaxed">
-                    <MathText text={q.question} />
-                  </div>
-
-                  {q.imageUrl && (
-                    <div className="relative max-w-sm rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
-                      <img
-                        src={q.imageUrl}
-                        alt="Question illustration"
-                        className="max-h-56 object-contain"
-                      />
-                    </div>
-                  )}
-
-                  {/* Correct Option Display */}
-                  {correctOpt && (
-                    <div className="p-3 rounded-lg border border-emerald-200 dark:border-emerald-950/70 bg-emerald-50/50 dark:bg-emerald-950/20 flex items-start gap-2.5 text-xs text-emerald-950 dark:text-emerald-200">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <div>
-                        <strong className="font-semibold text-emerald-800 dark:text-emerald-300">
-                          Correct Answer ({q.correctOptionId.toUpperCase()}):
-                        </strong>{" "}
-                        <span className="font-medium">
-                          <MathText text={correctOpt.text} />
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Solution Accordion */}
-                  {q.explanation && (
-                    <div>
-                      <button
-                        type="button"
-                        onClick={() => toggleExplanation(q.id)}
-                        className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-[#4F46E5] transition-colors"
-                      >
-                        <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
-                        <span>Step-by-Step Solution</span>
-                        {isExplanationOpen ? (
-                          <ChevronUp className="h-3.5 w-3.5 ml-0.5" />
-                        ) : (
-                          <ChevronDown className="h-3.5 w-3.5 ml-0.5" />
-                        )}
-                      </button>
-
-                      {isExplanationOpen && (
-                        <div className="mt-2 p-3.5 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                          <MathText text={q.explanation} />
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Footer Action and Tags */}
-                  <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800/80">
-                    <div className="flex flex-wrap gap-1">
-                      {q.tags?.map((t) => (
-                        <span
-                          key={t}
-                          className="text-[10px] text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded"
-                        >
-                          #{t}
-                        </span>
-                      ))}
-                    </div>
-
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handlePracticeQuestions([q])}
-                      className="text-xs h-7 gap-1"
-                    >
-                      <Sparkles className="h-3 w-3 text-[#4F46E5]" />
-                      Practice Single
-                    </Button>
-                  </div>
-                </div>
-              </div>
+                index={idx}
+                question={q}
+                isBookmarked={isBookmarked}
+                onToggleBookmark={() => handleToggleBookmark(q.id)}
+                onRemove={() => handleRemoveMistake(q.id)}
+                removeTooltip="ভুল ব্যাংক থেকে সরান"
+                subjectName={subjectMap.get(q.subjectId)}
+                defaultRevealed={globalRevealed}
+                initialSelectedOptionId={userAns}
+                showPracticeSingle={true}
+                onPracticeSingle={(targetQ) => handlePracticeQuestions([targetQ])}
+              />
             );
           })}
         </div>

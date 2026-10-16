@@ -13,7 +13,8 @@ import { userBookmarkDoc, userBookmarksCol } from "@/lib/firebase/firestore";
  */
 export async function toggleBookmark(
   userId: string,
-  questionId: string
+  questionId: string,
+  metadata?: { selectedOptionId?: string | null }
 ): Promise<boolean> {
   try {
     const docRef = userBookmarkDoc(userId, questionId);
@@ -25,6 +26,7 @@ export async function toggleBookmark(
     } else {
       await setDoc(docRef, {
         questionId,
+        selectedOptionId: metadata?.selectedOptionId || null,
         addedAt: serverTimestamp(),
       });
       return true;
@@ -32,6 +34,30 @@ export async function toggleBookmark(
   } catch (error) {
     console.error("Error toggling bookmark:", error);
     throw error;
+  }
+}
+
+/**
+ * Saves or updates user's selected answer on a bookmarked question
+ */
+export async function saveBookmarkAnswer(
+  userId: string,
+  questionId: string,
+  selectedOptionId: string
+): Promise<void> {
+  try {
+    const docRef = userBookmarkDoc(userId, questionId);
+    await setDoc(
+      docRef,
+      {
+        questionId,
+        selectedOptionId,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+  } catch (error) {
+    console.error("Error saving bookmark answer:", error);
   }
 }
 
@@ -63,3 +89,25 @@ export async function getUserBookmarkIds(userId: string): Promise<string[]> {
     return [];
   }
 }
+
+/**
+ * Gets map of questionId -> bookmark metadata (including selectedOptionId)
+ */
+export async function getUserBookmarksMap(
+  userId: string
+): Promise<Record<string, { selectedOptionId?: string | null }>> {
+  try {
+    const snapshot = await getDocs(userBookmarksCol(userId));
+    const map: Record<string, { selectedOptionId?: string | null }> = {};
+    snapshot.docs.forEach((d) => {
+      map[d.id] = {
+        selectedOptionId: d.data().selectedOptionId || null,
+      };
+    });
+    return map;
+  } catch (error) {
+    console.error("Error fetching bookmarks map:", error);
+    return {};
+  }
+}
+

@@ -12,7 +12,14 @@ import {
   doc,
   increment,
 } from "firebase/firestore";
-import { attemptsCol, attemptDoc, userQuestionStatDoc, userDoc, db } from "@/lib/firebase/firestore";
+import {
+  attemptsCol,
+  attemptDoc,
+  userQuestionStatDoc,
+  userQuestionStatsCol,
+  userDoc,
+  db,
+} from "@/lib/firebase/firestore";
 import { Attempt, AttemptAnswer, ExamMode } from "@/types";
 import { calculateScore } from "@/lib/calculations/score";
 import { calculateAccuracy } from "@/lib/calculations/accuracy";
@@ -123,6 +130,7 @@ export async function recordAttempt(input: CreateAttemptInput): Promise<string> 
         qStatRef,
         {
           questionId: ans.questionId,
+          selectedOptionId: ans.selectedOptionId,
           isCorrect: ans.isCorrect,
           lastAttemptAt: timestamp,
         },
@@ -130,6 +138,7 @@ export async function recordAttempt(input: CreateAttemptInput): Promise<string> 
       );
     }
   }
+
 
   // Update user profile metrics & streak in the same atomic batch
   try {
@@ -238,3 +247,44 @@ export async function getUserRecentAttempts(
     }
   }
 }
+
+/**
+ * Gets map of questionId -> user's latest recorded answer option ID and correctness
+ */
+export async function getUserRecordedAnswers(
+  userId: string
+): Promise<Record<string, { selectedOptionId: string; isCorrect: boolean }>> {
+  const result: Record<string, { selectedOptionId: string; isCorrect: boolean }> = {};
+  try {
+    // 1. Check user question stats
+    const statsSnap = await getDocs(userQuestionStatsCol(userId));
+    statsSnap.docs.forEach((d) => {
+      const data = d.data();
+      if (data.selectedOptionId) {
+        result[d.id] = {
+          selectedOptionId: data.selectedOptionId,
+          isCorrect: Boolean(data.isCorrect),
+        };
+      }
+    });
+
+    // 2. Also check recent attempts for any answers not yet in stats
+    const recentAttempts = await getUserRecentAttempts(userId, 10);
+    for (const att of recentAttempts) {
+      if (att.answers && Array.isArray(att.answers)) {
+        for (const ans of att.answers) {
+          if (ans.questionId && ans.selectedOptionId && !result[ans.questionId]) {
+            result[ans.questionId] = {
+              selectedOptionId: ans.selectedOptionId,
+              isCorrect: Boolean(ans.isCorrect),
+            };
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching user recorded answers:", error);
+  }
+  return result;
+}
+

@@ -5,24 +5,24 @@ import { useRouter } from "next/navigation";
 import { Question, Exam, Subject } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  getUserBookmarkIds,
+  getUserBookmarksMap,
   toggleBookmark,
+  saveBookmarkAnswer,
 } from "@/lib/services/bookmark-service";
+import { getUserRecordedAnswers } from "@/lib/services/attempt-service";
 import { getQuestionsByIds } from "@/lib/services/question-service";
 import { getExams } from "@/lib/services/exam-service";
 import { getSubjects } from "@/lib/services/subject-service";
-import { MathText } from "@/components/ui/math-text";
+import { StudyQuestionCard } from "@/components/question-bank/study-question-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Bookmark,
   Sparkles,
   Search,
-  Trash2,
-  ChevronDown,
-  ChevronUp,
-  CheckCircle2,
-  Lightbulb,
+  Eye,
+  EyeOff,
+  Filter,
 } from "lucide-react";
 
 export default function BookmarksPage() {
@@ -32,28 +32,45 @@ export default function BookmarksPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [expandedExplanations, setExpandedExplanations] = useState<Set<string>>(
-    new Set()
-  );
+  const [userAnswersMap, setUserAnswersMap] = useState<Record<string, string>>({});
+  const [globalRevealed, setGlobalRevealed] = useState(true);
 
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedExamId, setSelectedExamId] = useState<string>("all");
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>("all");
 
   useEffect(() => {
     async function loadBookmarks() {
       if (!user) return;
       setLoading(true);
       try {
-        const [examList, subjectList, bookmarkIds] = await Promise.all([
-          getExams(),
-          getSubjects(),
-          getUserBookmarkIds(user.uid),
-        ]);
+        const [examList, subjectList, bookmarksMap, recordedAnswers] =
+          await Promise.all([
+            getExams(),
+            getSubjects(),
+            getUserBookmarksMap(user.uid),
+            getUserRecordedAnswers(user.uid),
+          ]);
 
         setExams(examList);
         setSubjects(subjectList);
 
+        // Merge recorded answers from attempts and bookmark metadata
+        const mergedAnswers: Record<string, string> = {};
+        Object.entries(recordedAnswers).forEach(([qId, ans]) => {
+          if (ans.selectedOptionId) {
+            mergedAnswers[qId] = ans.selectedOptionId;
+          }
+        });
+        Object.entries(bookmarksMap).forEach(([qId, meta]) => {
+          if (meta.selectedOptionId && !mergedAnswers[qId]) {
+            mergedAnswers[qId] = meta.selectedOptionId;
+          }
+        });
+        setUserAnswersMap(mergedAnswers);
+
+        const bookmarkIds = Object.keys(bookmarksMap);
         if (bookmarkIds.length > 0) {
           const loadedQuestions = await getQuestionsByIds(bookmarkIds);
           setQuestions(loadedQuestions);
@@ -80,13 +97,13 @@ export default function BookmarksPage() {
     }
   };
 
-  const toggleExplanation = (qId: string) => {
-    setExpandedExplanations((prev) => {
-      const next = new Set(prev);
-      if (next.has(qId)) next.delete(qId);
-      else next.add(qId);
-      return next;
-    });
+  const handleAnswerSelect = async (questionId: string, optionId: string) => {
+    if (!user) return;
+    setUserAnswersMap((prev) => ({
+      ...prev,
+      [questionId]: optionId,
+    }));
+    await saveBookmarkAnswer(user.uid, questionId, optionId);
   };
 
   const handlePracticeQuestions = (targetQuestions: Question[]) => {
@@ -106,6 +123,7 @@ export default function BookmarksPage() {
 
   const filteredQuestions = questions.filter((q) => {
     if (selectedExamId !== "all" && q.examId !== selectedExamId) return false;
+    if (selectedSubjectId !== "all" && q.subjectId !== selectedSubjectId) return false;
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       const matchesText = q.question.toLowerCase().includes(query);
@@ -130,8 +148,8 @@ export default function BookmarksPage() {
 
   return (
     <div className="w-full space-y-6 pb-20">
-      {/* Header Banner */}
-      <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* 1. Header Banner */}
+      <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-[#4F46E5] dark:text-[#818CF8]">
@@ -145,56 +163,101 @@ export default function BookmarksPage() {
             Bookmarks (সংরক্ষিত প্রশ্নাবলি)
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
-            Questions you flagged for focused revision and later review.
+            আপনার অনুশীলন ও পরীক্ষার সময় চিহ্নিত করা প্রশ্নাবলি। প্রতিটি প্রশ্নের নিজস্ব উত্তর, সঠিক উত্তর এবং পূর্ণ ব্যাখ্যা দেখুন।
           </p>
         </div>
 
-        {questions.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {/* Global Reveal / Hide Answer Toggle */}
           <Button
-            onClick={() => handlePracticeQuestions(filteredQuestions.length > 0 ? filteredQuestions : questions)}
-            className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs gap-1.5 shrink-0 shadow-xs"
+            variant="outline"
+            size="sm"
+            onClick={() => setGlobalRevealed((prev) => !prev)}
+            className="text-xs gap-1.5 h-9 border-slate-200 dark:border-slate-750"
           >
-            <Sparkles className="h-3.5 w-3.5" />
-            Practice Bookmarks ({filteredQuestions.length})
+            {globalRevealed ? (
+              <>
+                <EyeOff className="h-3.5 w-3.5 text-slate-500" />
+                <span>উত্তর লুকান (স্ব-মূল্যায়ন)</span>
+              </>
+            ) : (
+              <>
+                <Eye className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                <span>সব উত্তর একবারে দেখান</span>
+              </>
+            )}
           </Button>
-        )}
+
+          {/* Practice All Bookmarks */}
+          {questions.length > 0 && (
+            <Button
+              onClick={() => handlePracticeQuestions(filteredQuestions.length > 0 ? filteredQuestions : questions)}
+              className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs gap-1.5 h-9 shadow-xs"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Practice Bookmarks ({filteredQuestions.length})
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Filter and Search Bar */}
+      {/* 2. Filter and Search Bar */}
       <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
             <Input
               type="text"
-              placeholder="Search by question text or tag..."
+              placeholder="প্রশ্ন বা বিষয় দিয়ে খুঁজুন (Search by question text or tag)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 text-xs"
             />
           </div>
 
-          <select
-            value={selectedExamId}
-            onChange={(e) => setSelectedExamId(e.target.value)}
-            className="px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-900 dark:text-slate-100"
-          >
-            <option value="all">All Exams</option>
-            {exams.map((ex) => (
-              <option key={ex.id} value={ex.id}>
-                {ex.name}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2">
+            {/* Exam Filter */}
+            <select
+              value={selectedExamId}
+              onChange={(e) => setSelectedExamId(e.target.value)}
+              className="px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-900 dark:text-slate-100"
+            >
+              <option value="all">All Exams</option>
+              {exams.map((ex) => (
+                <option key={ex.id} value={ex.id}>
+                  {ex.name}
+                </option>
+              ))}
+            </select>
+
+            {/* Subject Filter */}
+            <select
+              value={selectedSubjectId}
+              onChange={(e) => setSelectedSubjectId(e.target.value)}
+              className="px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-900 dark:text-slate-100"
+            >
+              <option value="all">All Subjects</option>
+              {subjects.map((sub) => (
+                <option key={sub.id} value={sub.id}>
+                  {sub.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <div className="text-xs text-slate-500 pt-1">
-          Showing <strong className="text-slate-700 dark:text-slate-300">{filteredQuestions.length}</strong> of{" "}
-          {questions.length} saved bookmarks
+        <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
+          <div>
+            Showing <strong className="text-slate-700 dark:text-slate-300">{filteredQuestions.length}</strong> of{" "}
+            {questions.length} saved bookmarks
+          </div>
+          <div className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">
+            💡 অপশনে ক্লিক করে নিজের উত্তর যাচাই করুন
+          </div>
         </div>
       </div>
 
-      {/* Bookmarks List */}
+      {/* 3. Bookmarks List with StudyQuestionCard */}
       {filteredQuestions.length === 0 ? (
         <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center space-y-3">
           <div className="h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 mx-auto flex items-center justify-center">
@@ -207,141 +270,41 @@ export default function BookmarksPage() {
           </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             {questions.length === 0
-              ? "While practicing or reviewing exams, click the bookmark icon to save tricky questions here for revision."
-              : "Try searching with different keywords."}
+              ? "প্রশ্ন ব্যাংক অথবা প্র্যাকটিস সেশনের সময় বুকমার্ক আইকনে ক্লিক করে প্রয়োজনীয় প্রশ্নাবলি এখানে সংরক্ষণ করতে পারেন।"
+              : "অন্য কিওয়ার্ড অথবা বিষয় ফিল্টার পরিবর্তন করে দেখুন।"}
           </p>
           {questions.length === 0 && (
             <Button
-              onClick={() => router.push("/practice")}
+              onClick={() => router.push("/question-bank")}
               size="sm"
               className="text-xs gap-1.5"
             >
               <Sparkles className="h-3.5 w-3.5" />
-              Practice Questions
+              Go to Question Bank
             </Button>
           )}
         </div>
       ) : (
         <div className="space-y-4">
           {filteredQuestions.map((q, idx) => {
-            const isExplanationOpen = expandedExplanations.has(q.id);
-            const correctOpt = q.options.find(
-              (o) => o.id === q.correctOptionId
-            );
+            const userAns = userAnswersMap[q.id] || null;
 
             return (
-              <div
+              <StudyQuestionCard
                 key={q.id}
-                className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden"
-              >
-                <div className="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-xs text-[#4F46E5] dark:text-[#818CF8]">
-                      #{idx + 1}
-                    </span>
-                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                      {subjectMap.get(q.subjectId) || "Subject"}
-                    </span>
-                    <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                        q.difficulty === "easy"
-                          ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
-                          : q.difficulty === "medium"
-                          ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
-                          : "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300"
-                      }`}
-                    >
-                      {q.difficulty}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveBookmark(q.id)}
-                    title="Remove Bookmark"
-                    className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-amber-600 hover:text-red-600 hover:border-red-200 transition-colors"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-
-                <div className="p-5 space-y-3">
-                  <div className="text-sm font-medium text-slate-900 dark:text-slate-100 leading-relaxed">
-                    <MathText text={q.question} />
-                  </div>
-
-                  {q.imageUrl && (
-                    <div className="relative max-w-sm rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
-                      <img
-                        src={q.imageUrl}
-                        alt="Question illustration"
-                        className="max-h-56 object-contain"
-                      />
-                    </div>
-                  )}
-
-                  {correctOpt && (
-                    <div className="p-3 rounded-lg border border-emerald-200 dark:border-emerald-950/70 bg-emerald-50/50 dark:bg-emerald-950/20 flex items-start gap-2.5 text-xs text-emerald-950 dark:text-emerald-200">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <div>
-                        <strong className="font-semibold text-emerald-800 dark:text-emerald-300">
-                          Correct Answer ({q.correctOptionId.toUpperCase()}):
-                        </strong>{" "}
-                        <span className="font-medium">
-                          <MathText text={correctOpt.text} />
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {q.explanation && (
-                    <div>
-                      <button
-                        type="button"
-                        onClick={() => toggleExplanation(q.id)}
-                        className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-[#4F46E5] transition-colors"
-                      >
-                        <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
-                        <span>Step-by-Step Solution</span>
-                        {isExplanationOpen ? (
-                          <ChevronUp className="h-3.5 w-3.5 ml-0.5" />
-                        ) : (
-                          <ChevronDown className="h-3.5 w-3.5 ml-0.5" />
-                        )}
-                      </button>
-
-                      {isExplanationOpen && (
-                        <div className="mt-2 p-3.5 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                          <MathText text={q.explanation} />
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800/80">
-                    <div className="flex flex-wrap gap-1">
-                      {q.tags?.map((t) => (
-                        <span
-                          key={t}
-                          className="text-[10px] text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded"
-                        >
-                          #{t}
-                        </span>
-                      ))}
-                    </div>
-
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handlePracticeQuestions([q])}
-                      className="text-xs h-7 gap-1"
-                    >
-                      <Sparkles className="h-3 w-3 text-[#4F46E5]" />
-                      Practice Single
-                    </Button>
-                  </div>
-                </div>
-              </div>
+                index={idx}
+                question={q}
+                isBookmarked={true}
+                onToggleBookmark={() => handleRemoveBookmark(q.id)}
+                onRemove={() => handleRemoveBookmark(q.id)}
+                removeTooltip="বুকমার্ক তালিকা থেকে সরান"
+                subjectName={subjectMap.get(q.subjectId)}
+                defaultRevealed={globalRevealed}
+                initialSelectedOptionId={userAns}
+                onAnswerSelect={(optId) => handleAnswerSelect(q.id, optId)}
+                showPracticeSingle={true}
+                onPracticeSingle={(targetQ) => handlePracticeQuestions([targetQ])}
+              />
             );
           })}
         </div>
