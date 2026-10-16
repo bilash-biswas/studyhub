@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   GraduationCap,
   LayoutDashboard,
+  BookOpen,
   Sparkles,
   Timer,
   Bookmark,
@@ -43,6 +44,7 @@ export default function DashboardLayout({
 
   const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { label: "Question Bank", href: "/question-bank", icon: BookOpen },
     { label: "Practice", href: "/practice", icon: Sparkles },
     { label: "Mock Exams", href: "/exams", icon: Timer },
     { label: "Mistake Bank", href: "/mistakes", icon: AlertTriangle },
@@ -56,10 +58,10 @@ export default function DashboardLayout({
 
   const bottomNavItems = [
     { label: "Home", href: "/dashboard", icon: LayoutDashboard },
+    { label: "Q-Bank", href: "/question-bank", icon: BookOpen },
     { label: "Practice", href: "/practice", icon: Sparkles },
     { label: "Exams", href: "/exams", icon: Timer },
-    { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
-    { label: "Profile", href: "/profile", icon: User },
+    { label: "Bookmarks", href: "/bookmarks", icon: Bookmark },
   ];
 
   const handleLogout = async () => {
