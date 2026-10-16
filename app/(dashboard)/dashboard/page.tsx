@@ -28,6 +28,7 @@ import {
   GraduationCap,
   Trophy,
 } from "lucide-react";
+import { MobileAppDownload } from "@/components/shared/mobile-app-download";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -130,6 +131,9 @@ export default function DashboardPage() {
           </Button>
         </div>
       </div>
+
+      {/* Mobile App Download QR Code Banner */}
+      <MobileAppDownload variant="banner" />
 
       {/* 4 Primary Metric Stat Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

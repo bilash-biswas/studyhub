@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { MobileAppDownload } from "@/components/shared/mobile-app-download";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -70,7 +71,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <Card className="shadow-sm border-slate-200 dark:border-slate-800">
+    <div className="space-y-4">
+      <Card className="shadow-sm border-slate-200 dark:border-slate-800">
       <CardHeader className="space-y-1 pb-4">
         <CardTitle className="text-xl font-bold tracking-tight text-center">
           Create an account
@@ -250,5 +252,9 @@ export default function RegisterPage() {
         </div>
       </CardContent>
     </Card>
+
+    {/* Mobile App Download QR Card */}
+    <MobileAppDownload variant="card" />
+  </div>
   );
 }
