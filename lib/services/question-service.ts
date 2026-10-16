@@ -179,7 +179,8 @@ export async function getQuestionsByIds(ids: string[]): Promise<Question[]> {
         results.push({ id: d.id, ...d.data() } as Question);
       });
     }
-    return results;
+    const questionMap = new Map(results.map((q) => [q.id, q]));
+    return ids.map((id) => questionMap.get(id)).filter(Boolean) as Question[];
   } catch (error) {
     console.error("Error fetching questions by IDs:", error);
     return [];

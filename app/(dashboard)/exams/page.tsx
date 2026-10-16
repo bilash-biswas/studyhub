@@ -19,6 +19,7 @@ import {
   ArrowRight,
   ShieldCheck,
   Award,
+  Search,
 } from "lucide-react";
 
 export default function MockExamsCatalogPage() {
@@ -27,6 +28,7 @@ export default function MockExamsCatalogPage() {
   const [mockTests, setMockTests] = useState<MockTest[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
   const [selectedExamId, setSelectedExamId] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -62,10 +64,24 @@ export default function MockExamsCatalogPage() {
 
   const examMap = new Map(exams.map((e) => [e.id, e.name]));
 
-  const filteredTests = mockTests.filter((t) => {
-    if (selectedExamId !== "all" && t.examId !== selectedExamId) return false;
-    return true;
-  });
+  const filteredTests = mockTests
+    .filter((t) => {
+      if (selectedExamId !== "all" && t.examId !== selectedExamId) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchesTitle = t.title.toLowerCase().includes(q);
+        const matchesDesc = (t.description || "").toLowerCase().includes(q);
+        const matchesId = t.id.toLowerCase().includes(q);
+        if (!matchesTitle && !matchesDesc && !matchesId) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      const numA = parseInt((a.id.match(/\d+/) || ["0"])[0], 10);
+      const numB = parseInt((b.id.match(/\d+/) || ["0"])[0], 10);
+      if (numA && numB) return numB - numA;
+      return b.totalQuestions - a.totalQuestions;
+    });
 
   if (loading) {
     return (
@@ -138,6 +154,23 @@ export default function MockExamsCatalogPage() {
             {ex.name}
           </button>
         ))}
+      </div>
+
+      {/* Search & Stats Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search BCS batches, years, or exam titles (e.g. 46th, 10th)..."
+            className="w-full pl-9 pr-3 py-1.5 text-xs bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          />
+        </div>
+        <div className="text-xs text-slate-500 dark:text-slate-400">
+          Showing <span className="font-semibold text-slate-900 dark:text-slate-100">{filteredTests.length}</span> examinations
+        </div>
       </div>
 
       {/* Mock Tests Grid */}
