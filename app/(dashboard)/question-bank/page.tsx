@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Question, Exam, Subject } from "@/types";
 import {
   getQuestions,
@@ -57,6 +57,38 @@ export default function QuestionBankStudyPage() {
   const [hasMore, setHasMore] = useState<boolean>(false);
   const [pageDocSnapshots, setPageDocSnapshots] = useState<DocumentSnapshot[]>([]);
   const pageSize = 20;
+
+  // Horizontal Scroll State & Helpers for Subject Strip
+  const subjectsScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScroll = useCallback(() => {
+    const el = subjectsScrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 6);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 6);
+  }, []);
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener("resize", checkScroll);
+    return () => window.removeEventListener("resize", checkScroll);
+  }, [checkScroll, subjects]);
+
+  const scrollSubjects = (direction: "left" | "right") => {
+    if (!subjectsScrollRef.current) return;
+    const delta = direction === "left" ? -280 : 280;
+    subjectsScrollRef.current.scrollBy({ left: delta, behavior: "smooth" });
+    setTimeout(checkScroll, 320);
+  };
+
+  const handleSubjectsWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (subjectsScrollRef.current && e.deltaY !== 0) {
+      subjectsScrollRef.current.scrollLeft += e.deltaY;
+      checkScroll();
+    }
+  };
 
   // 1. Initial Load: Fetch Exams & Bookmarks
   useEffect(() => {
@@ -117,11 +149,9 @@ export default function QuestionBankStudyPage() {
     let count = 0;
     if (selectedSubjectId) count++;
     if (selectedBatchTag) count++;
-    if (selectedDifficulty !== "all") count++;
-    if (selectedVerified !== "all") count++;
     if (searchQuery.trim()) count++;
     return count;
-  }, [selectedSubjectId, selectedBatchTag, selectedDifficulty, selectedVerified, searchQuery]);
+  }, [selectedSubjectId, selectedBatchTag, searchQuery]);
 
   // 3. Fetch Questions Callback with Pagination
   const fetchQuestionsForPage = useCallback(
@@ -315,110 +345,120 @@ export default function QuestionBankStudyPage() {
       </div>
 
       {/* 2. Single Slim 44px Quick-Filter Strip */}
-      <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-2 shadow-2xs flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-        {/* BCS Batch Selector Pill */}
+      <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-2 shadow-2xs flex items-center gap-2">
+        {/* Fixed BCS Batch Selector Pill */}
         {selectedExamId === "exam_bcs" && (
-          <select
-            value={selectedBatchTag}
-            onChange={(e) => setSelectedBatchTag(e.target.value)}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer shrink-0 ${
-              selectedBatchTag
-                ? "bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800"
-                : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-transparent hover:border-slate-300"
-            }`}
-          >
-            {BCS_BATCHES.map((b) => (
-              <option key={b.id} value={b.id}>
-                {lang === "bn" ? b.labelBn : b.labelEn}
-              </option>
-            ))}
-          </select>
-        )}
-
-        {/* Difficulty Selector Pill */}
-        <select
-          value={selectedDifficulty}
-          onChange={(e) => setSelectedDifficulty(e.target.value)}
-          className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer shrink-0 ${
-            selectedDifficulty !== "all"
-              ? "bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800"
-              : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-transparent hover:border-slate-300"
-          }`}
-        >
-          <option value="all">{t("সব মান", "All Levels")}</option>
-          <option value="easy">{t("সহজ", "Easy")}</option>
-          <option value="medium">{t("মধ্যম", "Medium")}</option>
-          <option value="hard">{t("কঠিন", "Hard")}</option>
-        </select>
-
-        {/* Verified Filter Pill */}
-        <select
-          value={selectedVerified}
-          onChange={(e) => setSelectedVerified(e.target.value)}
-          className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer shrink-0 ${
-            selectedVerified !== "all"
-              ? "bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800"
-              : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-transparent hover:border-slate-300"
-          }`}
-        >
-          <option value="all">{t("সকল প্রশ্ন", "All Questions")}</option>
-          <option value="verified">{t("ভেরিফাইড প্রশ্ন", "Verified Only")}</option>
-        </select>
-
-        {/* Vertical Divider */}
-        <div className="h-5 w-px bg-slate-200 dark:bg-slate-800 self-center mx-1 shrink-0" />
-
-        {/* All Subjects Pill */}
-        <button
-          type="button"
-          onClick={() => setSelectedSubjectId("")}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
-            selectedSubjectId === ""
-              ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-2xs"
-              : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-          }`}
-        >
-          <span>{t("সব বিষয়", "All Subjects")}</span>
-        </button>
-
-        {/* Per-Subject Pills with Live Counts */}
-        {subjects.map((sub) => {
-          const count = subjectCounts[sub.id];
-          const isSelected = selectedSubjectId === sub.id;
-
-          return (
-            <button
-              key={sub.id}
-              type="button"
-              onClick={() => setSelectedSubjectId(sub.id)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
-                isSelected
-                  ? "bg-[#4F46E5] text-white font-semibold shadow-2xs"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+          <div className="shrink-0">
+            <select
+              value={selectedBatchTag}
+              onChange={(e) => setSelectedBatchTag(e.target.value)}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${
+                selectedBatchTag
+                  ? "bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-transparent hover:border-slate-300"
               }`}
             >
-              <span>{sub.name}</span>
-              {typeof count === "number" && count > 0 && (
-                <span
-                  className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
-                    isSelected
-                      ? "bg-white/20 text-white"
-                      : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
-                  }`}
-                >
-                  {n(count)}
-                </span>
-              )}
-            </button>
-          );
-        })}
+              {BCS_BATCHES.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {lang === "bn" ? b.labelBn : b.labelEn}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Vertical Divider */}
+        <div className="h-5 w-px bg-slate-200 dark:bg-slate-800 shrink-0" />
+
+        {/* Left Scroll Chevron Button */}
+        <button
+          type="button"
+          onClick={() => scrollSubjects("left")}
+          disabled={!canScrollLeft}
+          title={t("বামে স্ক্রল করুন", "Scroll left")}
+          className={`p-1.5 rounded-full shrink-0 transition-all ${
+            canScrollLeft
+              ? "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              : "text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-30"
+          }`}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+
+        {/* Smooth Horizontal Scrollable Subjects Container */}
+        <div
+          ref={subjectsScrollRef}
+          onScroll={checkScroll}
+          onWheel={handleSubjectsWheel}
+          className="flex-1 flex items-center gap-1.5 overflow-x-auto scroll-smooth py-1 custom-scrollbar"
+        >
+          {/* All Subjects Pill */}
+          <button
+            type="button"
+            onClick={() => setSelectedSubjectId("")}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
+              selectedSubjectId === ""
+                ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-2xs"
+                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+            }`}
+          >
+            <span>{t("সব বিষয়", "All Subjects")}</span>
+          </button>
+
+          {/* Per-Subject Pills with Live Counts */}
+          {subjects.map((sub) => {
+            const count = subjectCounts[sub.id];
+            const isSelected = selectedSubjectId === sub.id;
+
+            return (
+              <button
+                key={sub.id}
+                type="button"
+                onClick={() => setSelectedSubjectId(sub.id)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
+                  isSelected
+                    ? "bg-[#4F46E5] text-white font-semibold shadow-2xs"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                }`}
+              >
+                <span>{sub.name}</span>
+                {typeof count === "number" && count > 0 && (
+                  <span
+                    className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
+                      isSelected
+                        ? "bg-white/20 text-white"
+                        : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                    }`}
+                  >
+                    {n(count)}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Right Scroll Chevron Button */}
+        <button
+          type="button"
+          onClick={() => scrollSubjects("right")}
+          disabled={!canScrollRight}
+          title={t("ডানে স্ক্রল করুন", "Scroll right")}
+          className={`p-1.5 rounded-full shrink-0 transition-all ${
+            canScrollRight
+              ? "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              : "text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-30"
+          }`}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
 
         {/* Reset Filter Button (if active) */}
         {activeFiltersCount > 0 && (
           <button
             type="button"
             onClick={handleResetFilters}
-            className="px-2.5 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all flex items-center gap-1 bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 hover:bg-rose-100 ml-auto cursor-pointer"
+            className="px-2.5 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all flex items-center gap-1 bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 hover:bg-rose-100 cursor-pointer"
           >
             <RotateCcw className="h-3 w-3" />
             <span>{t("রিসেট", "Reset")}</span>
