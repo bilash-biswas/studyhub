@@ -2,121 +2,151 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, AlertCircle, CheckCircle2, ArrowLeft } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { forgotPasswordSchema, ForgotPasswordFormData } from "@/lib/validations/auth";
+import {
+  Mail,
+  ArrowLeft,
+  AlertCircle,
+  CheckCircle2,
+  KeyRound,
+} from "lucide-react";
+import { useAuth } from "@/lib/context/auth-context";
+import { useLanguage } from "@/lib/context/language-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
 
 export default function ForgotPasswordPage() {
   const { sendPasswordReset } = useAuth();
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const { t } = useLanguage();
+
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isSent, setIsSent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ForgotPasswordFormData>({
-    resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: {
-      email: "",
-    },
-  });
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
 
-  const onSubmit = async (data: ForgotPasswordFormData) => {
-    setAuthError(null);
+    if (!email.trim()) {
+      setError(
+        t(
+          "অনুগ্রহ করে আপনার নিবন্ধিত ইমেইল অ্যাড্রেস লিখুন।",
+          "Please enter your registered email address."
+        )
+      );
+      return;
+    }
+
     setIsSubmitting(true);
-    const result = await sendPasswordReset(data.email);
+    const result = await sendPasswordReset(email);
     setIsSubmitting(false);
 
-    if (result.success) {
-      setIsSuccess(true);
+    if (!result.success) {
+      setError(
+        result.error ||
+          t(
+            "পাসওয়ার্ড রিসেট ইমেইল পাঠানো যায়নি। আবার চেষ্টা করুন।",
+            "Could not send password reset email. Please try again."
+          )
+      );
     } else {
-      setAuthError(result.error || "Could not send password reset email.");
+      setIsSent(true);
     }
   };
 
   return (
-    <Card className="shadow-sm border-slate-200 dark:border-slate-800">
-      <CardHeader className="space-y-1 pb-4">
-        <CardTitle className="text-xl font-bold tracking-tight text-center">
-          Reset password
+    <Card className="border-slate-200/80 dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-none">
+      <CardHeader className="space-y-1 text-center pb-4">
+        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
+          <KeyRound className="h-6 w-6" />
+        </div>
+        <CardTitle className="text-2xl font-bold tracking-tight">
+          {t("পাসওয়ার্ড রিসেট করুন", "Reset your password")}
         </CardTitle>
-        <CardDescription className="text-center text-xs">
-          Enter your registered email address and we will send you a reset link
+        <CardDescription>
+          {t(
+            "আপনার নিবন্ধিত ইমেইল দিন, আমরা পাসওয়ার্ড রিসেট করার লিঙ্ক পাঠিয়ে দেবো",
+            "Enter your registered email and we'll send you a password reset link"
+          )}
         </CardDescription>
       </CardHeader>
+
       <CardContent className="space-y-4">
-        {authError && (
-          <div className="flex items-start gap-2.5 p-3 rounded-lg bg-red-50 border border-red-200 dark:bg-red-950/40 dark:border-red-900 text-red-700 dark:text-red-300 text-xs">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
-            <p className="flex-1">{authError}</p>
+        {error && (
+          <div className="flex items-start gap-2.5 rounded-lg bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/50 p-3 text-sm text-red-600 dark:text-red-400">
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+            <span>{error}</span>
           </div>
         )}
 
-        {isSuccess ? (
-          <div className="space-y-4 text-center py-2">
-            <div className="mx-auto h-12 w-12 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <CheckCircle2 className="h-6 w-6" />
-            </div>
+        {isSent ? (
+          <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 p-4 space-y-3 text-center">
+            <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400 mx-auto" />
             <div className="space-y-1">
-              <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Reset Link Sent!
-              </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Please check your email inbox and spam folder for instructions to reset your password.
+              <h3 className="text-sm font-bold text-emerald-900 dark:text-emerald-200">
+                {t(
+                  "পাসওয়ার্ড রিসেট লিঙ্ক পাঠানো হয়েছে!",
+                  "Password Reset Link Sent!"
+                )}
+              </h3>
+              <p className="text-xs text-emerald-700 dark:text-emerald-300 leading-relaxed">
+                {t(
+                  `আমরা ${email} ঠিকানায় একটি পাসওয়ার্ড রিসেট ইমেইল পাঠিয়েছি। অনুগ্রহ করে ইনবক্স অথবা স্প্যাম ফোল্ডার চেক করুন।`,
+                  `We sent a password reset link to ${email}. Please check your inbox or spam folder.`
+                )}
               </p>
             </div>
-            <Link href="/login" className="block pt-2">
-              <Button variant="outline" className="w-full text-xs">
-                Back to Sign In
-              </Button>
-            </Link>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsSent(false)}
+              className="mt-2"
+            >
+              {t("অন্য ইমেইল দিয়ে চেষ্টা করুন", "Try another email")}
+            </Button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email Address</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 pointer-events-none" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  className="pl-9"
-                  error={errors.email?.message}
-                  {...register("email")}
-                />
-              </div>
-            </div>
+          <form onSubmit={handleReset} className="space-y-4">
+            <Input
+              label={t("ইমেইল অ্যাড্রেস", "Email Address")}
+              type="email"
+              placeholder="name@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              leftIcon={<Mail className="h-4 w-4" />}
+              required
+              autoComplete="email"
+            />
 
             <Button
               type="submit"
-              variant="primary"
-              className="w-full font-semibold"
+              className="w-full h-11 font-semibold"
               isLoading={isSubmitting}
             >
-              Send Reset Link
+              {t("রিসেট লিঙ্ক পাঠান", "Send Reset Link")}
             </Button>
-
-            <div className="pt-2 text-center text-xs text-slate-500">
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-1 font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline"
-              >
-                <ArrowLeft className="h-3 w-3" />
-                Back to Sign In
-              </Link>
-            </div>
           </form>
         )}
       </CardContent>
+
+      <CardFooter className="justify-center border-t border-slate-100 dark:border-slate-800/80 pt-4">
+        <Link
+          href="/login"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t("লগইন পেইজে ফিরে যান", "Back to Sign In")}
+        </Link>
+      </CardFooter>
     </Card>
   );
 }

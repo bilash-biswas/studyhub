@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -10,11 +9,10 @@ import {
   Share2,
   Check,
   ExternalLink,
-  ShieldCheck,
   Sparkles,
   QrCode,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/context/language-context";
 
 interface MobileAppDownloadProps {
   variant?: "card" | "banner" | "compact";
@@ -25,6 +23,7 @@ export function MobileAppDownload({
   variant = "card",
   className = "",
 }: MobileAppDownloadProps) {
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [origin, setOrigin] = useState("https://medhavi-nine.vercel.app");
 
@@ -36,8 +35,6 @@ export function MobileAppDownload({
 
   const downloadLandingUrl = `${origin}/download`;
   const directApkUrl = `${origin}/downloads/medhavi-app.apk`;
-  const githubReleaseUrl =
-    "https://github.com/bilash-biswas/medhavi-mobile/releases/tag/v1.0.0";
 
   const handleCopyLink = async () => {
     try {
@@ -62,8 +59,14 @@ export function MobileAppDownload({
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({
-          title: "মেধাবী (Medhavi) - বিসিএস প্রস্তুতি মোবাইল অ্যাপ",
-          text: "১০ম থেকে ৫০তম বিসিএস প্রশ্ন ব্যাংক, লাইভ কুইজ ও অনুশীলন সহ মেধাবী অ্যাপ ডাউনলোড করুন:",
+          title: t(
+            "মেধাবী (Medhavi) - বিসিএস প্রস্তুতি মোবাইল অ্যাপ",
+            "Medhavi - Smart BCS Exam Preparation App"
+          ),
+          text: t(
+            "১০ম থেকে ৫০তম বিসিএস প্রশ্ন ব্যাংক, লাইভ কুইজ ও অনুশীলন সহ মেধাবী অ্যাপ ডাউনলোড করুন:",
+            "Download the Medhavi Android App with 10th-50th BCS Question Bank, Live Mock Exams & Analytics:"
+          ),
           url: downloadLandingUrl,
         });
         return;
@@ -84,27 +87,38 @@ export function MobileAppDownload({
           <div className="flex-1 space-y-3 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
               <Sparkles className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-              <span>নতুন রিলিজ • অ্যান্ড্রয়েড APK v1.0.0</span>
+              <span>
+                {t(
+                  "নতুন রিলিজ • অ্যান্ড্রয়েড APK v1.0.0",
+                  "New Release • Android APK v1.0.0"
+                )}
+              </span>
             </div>
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-              মেধাবী মোবাইল অ্যাপ দিয়ে যেকোনো সময় বিসিএস প্রস্তুতি নিন
+              {t(
+                "মেধাবী মোবাইল অ্যাপ দিয়ে যেকোনো সময় বিসিএস প্রস্তুতি নিন",
+                "Prepare for BCS Anywhere with the Medhavi Mobile App"
+              )}
             </h2>
             <p className="text-sm text-slate-600 dark:text-slate-300 max-w-xl">
-              ১০ম থেকে ৫০তম বিসিএসের ৫,৪০০+ প্রশ্ন ব্যাংক, নির্ভুল ব্যাখ্যা, লাইভ কুইজ, অফলাইন বুকমার্ক এবং ডার্ক মোড সহ সম্পূর্ণ বিনামূল্যে আপনার ফোনে ইন্সটল করুন।
+              {t(
+                "১০ম থেকে ৫০তম বিসিএসের ৫,৪২৩+ ভেরিফাইড প্রশ্ন ব্যাংক, নির্ভুল ব্যাখ্যা, লাইভ মক টেস্ট, পুশ নোটিফিকেশন এবং ডার্ক মোড সহ সম্পূর্ণ বিনামূল্যে আপনার ফোনে ইন্সটল করুন।",
+                "Install on your Android phone for free — featuring 5,423+ verified 10th–50th BCS questions, detailed explanations, live mock tests, push alerts, and dark mode."
+              )}
             </p>
 
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 pt-1">
               <span className="text-xs px-2.5 py-1 bg-white/80 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium">
-                ✓ ১০ম-৫০তম বিসিএস
+                {t("✓ ১০ম-৫০তম বিসিএস", "✓ 10th–50th BCS")}
               </span>
               <span className="text-xs px-2.5 py-1 bg-white/80 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium">
-                ✓ অফলাইন বুকমার্ক
+                {t("✓ অফলাইন বুকমার্ক", "✓ Smart Bookmarks")}
               </span>
               <span className="text-xs px-2.5 py-1 bg-white/80 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium">
-                ✓ ভুল ব্যাংক
+                {t("✓ ভুল ব্যাংক ও স্ট্রিক", "✓ Mistake Vault & Streak")}
               </span>
               <span className="text-xs px-2.5 py-1 bg-white/80 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium">
-                ✓ সাইজ: ৫৮ MB
+                {t("✓ সাইজ: ৫৮.৫ MB", "✓ Size: 58.5 MB")}
               </span>
             </div>
 
@@ -115,22 +129,22 @@ export function MobileAppDownload({
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
                 <Download className="h-4 w-4" />
-                APK সরাসরি ডাউনলোড করুন
+                {t("APK সরাসরি ডাউনলোড করুন", "Download APK Directly")}
               </a>
               <button
                 type="button"
                 onClick={handleNativeShare}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-colors cursor-pointer"
               >
                 {copied ? (
                   <>
                     <Check className="h-4 w-4 text-emerald-600" />
-                    <span>লিঙ্ক কপি হয়েছে!</span>
+                    <span>{t("লিঙ্ক কপি হয়েছে!", "Link Copied!")}</span>
                   </>
                 ) : (
                   <>
                     <Share2 className="h-4 w-4" />
-                    <span>অ্যাপ শেয়ার করুন</span>
+                    <span>{t("অ্যাপ শেয়ার করুন", "Share App")}</span>
                   </>
                 )}
               </button>
@@ -138,7 +152,8 @@ export function MobileAppDownload({
                 href="/download"
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
               >
-                ডাউনলোড পেইজ <ExternalLink className="h-3.5 w-3.5" />
+                {t("ডাউনলোড পেইজ", "Download Page")}{" "}
+                <ExternalLink className="h-3.5 w-3.5" />
               </Link>
             </div>
           </div>
@@ -156,10 +171,18 @@ export function MobileAppDownload({
             </div>
             <div className="flex items-center gap-1.5 mt-2.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
               <QrCode className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-              <span>মোবাইল ক্যামেরা দিয়ে স্ক্যান করুন</span>
+              <span>
+                {t(
+                  "মোবাইল ক্যামেরা দিয়ে স্ক্যান করুন",
+                  "Scan with Phone Camera"
+                )}
+              </span>
             </div>
             <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
-              অ্যান্ড্রয়েড স্মার্টফোনে ইনস্টল করার জন্য
+              {t(
+                "অ্যান্ড্রয়েড স্মার্টফোনে ইনস্টল করার জন্য",
+                "For instant Android installation"
+              )}
             </span>
           </div>
         </div>
@@ -188,13 +211,18 @@ export function MobileAppDownload({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-1">
             <Smartphone className="h-3.5 w-3.5" />
-            <span>মোবাইল অ্যাপ • APK v1.0.0</span>
+            <span>
+              {t("মোবাইল অ্যাপ • APK v1.0.0", "Mobile App • APK v1.0.0")}
+            </span>
           </div>
           <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-snug">
-            ফোনে ব্যবহার করতে স্ক্যান করুন
+            {t("ফোনে ব্যবহার করতে স্ক্যান করুন", "Scan to Install on Android")}
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
-            ১০ম-৫০তম বিসিএস প্রশ্ন ব্যাংক, লাইভ কুইজ ও অফলাইন অনুশীলন।
+            {t(
+              "১০ম-৫০তম বিসিএস প্রশ্ন ব্যাংক, লাইভ কুইজ ও পুশ নোটিফিকেশন।",
+              "10th–50th BCS Question Bank, Live Mock Tests & Push Alerts."
+            )}
           </p>
 
           <div className="flex flex-wrap items-center gap-2 mt-3">
@@ -204,23 +232,23 @@ export function MobileAppDownload({
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-xs"
             >
               <Download className="h-3.5 w-3.5" />
-              ডাউনলোড APK (৫৮ MB)
+              {t("ডাউনলোড APK (৫৮.৫ MB)", "Download APK (58.5 MB)")}
             </a>
             <button
               type="button"
               onClick={handleNativeShare}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors"
-              title="শেয়ার লিঙ্ক কপি করুন"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+              title={t("শেয়ার লিঙ্ক কপি করুন", "Copy share link")}
             >
               {copied ? (
                 <>
                   <Check className="h-3 w-3 text-emerald-600" />
-                  <span>কপি হয়েছে</span>
+                  <span>{t("কপি হয়েছে", "Copied")}</span>
                 </>
               ) : (
                 <>
                   <Share2 className="h-3 w-3" />
-                  <span>শেয়ার</span>
+                  <span>{t("শেয়ার", "Share")}</span>
                 </>
               )}
             </button>
