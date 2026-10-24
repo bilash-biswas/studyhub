@@ -151,7 +151,7 @@ export function NotificationBell() {
 
       {/* Dropdown Notification Center */}
       {open && (
-        <div className="fixed sm:absolute right-3 sm:right-0 top-14 sm:top-10 w-[calc(100vw-1.5rem)] sm:w-80 md:w-96 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl z-50 overflow-hidden">
+        <div className="fixed sm:absolute right-3 sm:right-0 lg:left-0 lg:right-auto top-14 sm:top-10 w-[calc(100vw-1.5rem)] sm:w-80 md:w-96 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl z-50 overflow-hidden">
           <div className="p-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/50">
             <div className="flex items-center gap-2">
               <Bell className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />

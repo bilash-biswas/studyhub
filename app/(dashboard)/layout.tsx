@@ -122,18 +122,18 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen flex bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 transition-colors">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 z-30 bg-white dark:bg-[#111827] border-r border-slate-200 dark:border-slate-800">
+      <aside className="hidden lg:flex w-[268px] flex-col fixed inset-y-0 z-30 bg-white dark:bg-[#111827] border-r border-slate-200 dark:border-slate-800">
         {/* Brand */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-[#4F46E5] text-white flex items-center justify-center shadow-xs">
+        <div className="h-16 flex items-center justify-between gap-2 px-4 border-b border-slate-200 dark:border-slate-800">
+          <Link href="/dashboard" className="flex items-center gap-2 min-w-0">
+            <div className="h-8 w-8 rounded-lg bg-[#4F46E5] text-white flex items-center justify-center shadow-xs shrink-0">
               <GraduationCap className="h-4 w-4" />
             </div>
-            <span className="text-base font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            <span className="text-[15px] font-bold tracking-tight text-slate-900 dark:text-slate-100 truncate">
               {t("মেধাবী", "Medhavi")}
             </span>
           </Link>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             <NotificationBell />
             <LanguageToggle />
             <ThemeToggle />
@@ -205,7 +205,7 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 lg:pl-64 flex flex-col min-w-0 pb-16 lg:pb-0">
+      <div className="flex-1 lg:pl-[268px] flex flex-col min-w-0 pb-16 lg:pb-0">
         {/* Mobile Top Header (LinkedIn-style Auto-Hiding on Scroll Down) */}
         <header
           className={`lg:hidden h-14 border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#111827]/95 backdrop-blur-md px-4 flex items-center justify-between sticky top-0 z-30 transition-transform duration-300 ease-in-out ${

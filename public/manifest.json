@@ -1,16 +1,16 @@
 {
-  "name": "Medhavi — Practice. Improve. Succeed.",
-  "short_name": "Medhavi",
-  "description": "Collaborative online exam-preparation platform for BCS, Bank Job, and Government Career candidates in Bangladesh.",
+  "name": "মেধাবী (Medhavi) — বিসিএস ও সরকারি চাকরি প্রস্তুতি",
+  "short_name": "মেধাবী",
+  "description": "১০ম–৫০তম বিসিএস প্রিলিমিনারি, ব্যাংক জব এবং সরকারি চাকরির পূর্ণাঙ্গ অনলাইন প্রস্তুতি প্ল্যাটফর্ম।",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#0F172A",
   "theme_color": "#4F46E5",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     }
   ]
 }

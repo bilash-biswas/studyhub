@@ -88,7 +88,9 @@ export default function ProfilePage() {
                     : "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
                 }`}
               >
-                {profile?.role === "admin" ? "Administrator" : "Candidate"}
+                {profile?.role === "admin"
+                  ? t("অ্যাডমিনিস্ট্রেটর", "Administrator")
+                  : t("পরীক্ষার্থী", "Candidate")}
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5">
@@ -150,7 +152,7 @@ export default function ProfilePage() {
       <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
           <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
-            Account Details
+            {t("অ্যাকাউন্টের তথ্য", "Account Details")}
           </h2>
           {!isEditing && (
             <button
@@ -159,7 +161,7 @@ export default function ProfilePage() {
               className="text-xs font-semibold text-[#4F46E5] dark:text-[#818CF8] hover:underline flex items-center gap-1"
             >
               <Edit2 className="h-3 w-3" />
-              Edit Name
+              {t("নাম পরিবর্তন করুন", "Edit Name")}
             </button>
           )}
         </div>
@@ -181,7 +183,7 @@ export default function ProfilePage() {
         <div className="space-y-4 text-xs">
           <div>
             <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-              Full Name
+              {t("পূর্ণ নাম", "Full Name")}
             </label>
             {isEditing ? (
               <div className="flex items-center gap-2">
@@ -196,7 +198,9 @@ export default function ProfilePage() {
                   disabled={isSaving}
                   className="bg-[#4F46E5] text-white text-xs h-9 shrink-0"
                 >
-                  {isSaving ? "Saving..." : "Save"}
+                  {isSaving
+                    ? t("সেভ হচ্ছে...", "Saving...")
+                    : t("সেভ করুন", "Save")}
                 </Button>
                 <Button
                   variant="outline"
@@ -204,41 +208,43 @@ export default function ProfilePage() {
                   onClick={() => setIsEditing(false)}
                   className="text-xs h-9 shrink-0"
                 >
-                  Cancel
+                  {t("বাতিল", "Cancel")}
                 </Button>
               </div>
             ) : (
               <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 font-medium">
-                {profile?.name || user?.displayName || "Candidate"}
+                {profile?.name || user?.displayName || t("পরীক্ষার্থী", "Candidate")}
               </div>
             )}
           </div>
 
           <div>
             <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-              Email Address
+              {t("ইমেইল ঠিকানা", "Email Address")}
             </label>
             <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 font-medium text-slate-500">
-              {user?.email} (Google / Password Managed)
+              {user?.email} ({t("গুগল / পাসওয়ার্ড পরিচালিত", "Google / Password Managed")})
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                Total Attempts
+                {t("মোট অনুশীলন", "Total Attempts")}
               </label>
               <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 font-medium">
-                {profile?.totalAttempts || 0} Exam Sessions
+                {n(profile?.totalAttempts || 0)}{" "}
+                {t("টি সেশন", "Exam Sessions")}
               </div>
             </div>
 
             <div>
               <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                Last Practice Date
+                {t("সর্বশেষ অনুশীলনের তারিখ", "Last Practice Date")}
               </label>
               <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 font-medium">
-                {profile?.lastPracticeDate || "Not practiced yet"}
+                {profile?.lastPracticeDate ||
+                  t("এখনো অনুশীলন করা হয়নি", "Not practiced yet")}
               </div>
             </div>
           </div>

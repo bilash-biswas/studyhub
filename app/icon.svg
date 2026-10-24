@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="medhaviGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F46E5" />
+      <stop offset="100%" stop-color="#3730A3" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#medhaviGrad)" />
+  <path
+    d="M32 14L10 25l22 11 18-9v13h4V25L32 14zm-12 17.5v9.5c0 4.2 5.4 8 12 8s12-3.8 12-8v-9.5L32 37.5l-12-6z"
+    fill="#FFFFFF"
+  />
+</svg>
