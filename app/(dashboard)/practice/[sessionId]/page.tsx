@@ -16,7 +16,7 @@ import { ArrowLeft, AlertCircle } from "lucide-react";
 export default function PracticeSessionPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const sessionId = params.sessionId as string;
 
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -135,6 +135,8 @@ export default function PracticeSessionPage() {
         correctMark: 1,
         wrongMark: 0, // Practice mode has no negative marking
       });
+
+      await refreshProfile();
 
       // Clear session config
       if (typeof window !== "undefined") {

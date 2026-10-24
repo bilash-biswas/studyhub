@@ -24,6 +24,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { calculateAccuracy } from "@/lib/calculations/accuracy";
+import { getEffectiveUserStreak } from "@/lib/calculations/streak";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -133,7 +134,7 @@ export default function ProfilePage() {
         <div className="bg-white dark:bg-[#111827] p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs text-center space-y-1">
           <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 flex items-center justify-center gap-1">
             <Flame className="h-6 w-6 fill-current" />
-            <span>{n(profile?.currentStreak || 0)}</span>
+            <span>{n(getEffectiveUserStreak(profile))}</span>
           </div>
           <div className="text-xs text-slate-500 font-medium">{t("বর্তমান স্ট্রিক", "Current Streak")}</div>
         </div>

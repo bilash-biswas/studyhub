@@ -18,7 +18,7 @@ import { ArrowLeft, AlertCircle } from "lucide-react";
 export default function TimedExamPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const testId = params.examId as string;
 
   const [mockTest, setMockTest] = useState<MockTest | null>(null);
@@ -92,6 +92,8 @@ export default function TimedExamPage() {
         correctMark: mockTest.correctMark,
         wrongMark: mockTest.wrongMark,
       });
+
+      await refreshProfile();
 
       router.push(`/results/${attemptId}`);
     } catch (err: any) {

@@ -33,6 +33,7 @@ import {
   formatStreakTargetBadge,
 } from "@/lib/services/notification-service";
 import { getUsers } from "@/lib/services/user-service";
+import { getEffectiveUserStreak } from "@/lib/calculations/streak";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -155,7 +156,7 @@ export default function AdminNotificationsPage() {
     };
 
     for (const u of users) {
-      const s = Math.max(0, Number(u.currentStreak ?? (u as any).streak) || 0);
+      const s = getEffectiveUserStreak(u);
       if (s === 0) counts.streak_zero++;
       if (s >= 1 && s <= 3) counts.streak_beginner++;
       if (s >= 4 && s <= 6) counts.streak_rising++;

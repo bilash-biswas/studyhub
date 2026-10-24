@@ -14,11 +14,13 @@ import {
 import {
   getDoc,
   setDoc,
+  updateDoc,
   serverTimestamp,
   doc,
 } from "firebase/firestore";
 import { auth, googleProvider, getFriendlyAuthErrorMessage } from "@/lib/firebase/auth";
 import { db, userDoc } from "@/lib/firebase/firestore";
+import { evaluateActiveStreak } from "@/lib/calculations/streak";
 import { UserProfile } from "@/types";
 
 interface AuthContextType {
@@ -48,7 +50,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const snapshot = await getDoc(userRef);
 
       if (snapshot.exists()) {
-        return snapshot.data() as UserProfile;
+        const existingData = snapshot.data() as UserProfile;
+        const streakEval = evaluateActiveStreak({
+          currentStreak: existingData.currentStreak,
+          lastPracticeDate: existingData.lastPracticeDate,
+        });
+
+        if (streakEval.isExpired) {
+          try {
+            await updateDoc(userRef, {
+              currentStreak: 0,
+              updatedAt: serverTimestamp(),
+            });
+          } catch (updateErr) {
+            console.warn("Could not persist expired streak reset:", updateErr);
+          }
+          return {
+            ...existingData,
+            currentStreak: 0,
+          };
+        }
+
+        return {
+          ...existingData,
+          currentStreak: streakEval.effectiveStreak,
+        };
       }
 
       // First time registration or Google sign-in: create user profile

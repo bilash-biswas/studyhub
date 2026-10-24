@@ -16,6 +16,7 @@ import {
 } from "@/lib/services/notification-service";
 import { Attempt, Exam, Subject, AppNotification } from "@/types";
 import { calculateAccuracy } from "@/lib/calculations/accuracy";
+import { evaluateActiveStreak } from "@/lib/calculations/streak";
 import { Button } from "@/components/ui/button";
 import {
   Sparkles,
@@ -79,7 +80,11 @@ export default function DashboardPage() {
   const examMap = new Map(exams.map((e) => [e.id, e.name]));
   const subjectMap = new Map(subjects.map((s) => [s.id, s.name]));
 
-  const currentStreak = profile?.currentStreak || 0;
+  const streakEval = evaluateActiveStreak({
+    currentStreak: profile?.currentStreak,
+    lastPracticeDate: profile?.lastPracticeDate,
+  });
+  const currentStreak = streakEval.effectiveStreak;
   const totalQuestions = profile?.totalQuestionsAnswered || 0;
   const totalCorrect = profile?.totalCorrect || 0;
   const accuracy = calculateAccuracy(totalCorrect, totalQuestions);
@@ -145,9 +150,20 @@ export default function DashboardPage() {
               {t(`${n(currentStreak)} দিনের স্ট্রিক`, `${currentStreak} Day Streak`)}
             </span>
             <span className="text-xs text-slate-500">
-              {currentStreak > 0
-                ? t("ধারাবাহিকতা বজায় রাখুন!", "Keep the fire burning!")
-                : t("স্ট্রিক শুরু করতে আজই অনুশীলন করুন!", "Practice today to start a streak!")}
+              {streakEval.status === "practiced_today"
+                ? t(
+                    "✅ আজকের স্ট্রিক সুরক্ষিত!",
+                    "✅ Today's streak protected!"
+                  )
+                : streakEval.status === "at_risk_today"
+                ? t(
+                    "⏳ স্ট্রিক বাঁচাতে আজ অনুশীলন করুন!",
+                    "⏳ Practice today to keep your streak!"
+                  )
+                : t(
+                    "স্ট্রিক ০ — আজই অনুশীলন শুরু করুন!",
+                    "Streak is 0 — Practice today to start!"
+                  )}
             </span>
           </div>
 

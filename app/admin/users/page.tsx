@@ -157,7 +157,10 @@ export default function AdminUsersPage() {
                       </div>
                       <div className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center justify-end gap-1">
                         <Flame className="h-3 w-3 fill-current" />
-                        <span>{u.currentStreak || 0} day streak</span>
+                        <span>
+                          {u.currentStreak || 0} day streak
+                          {u.lastPracticeDate ? ` • Last: ${u.lastPracticeDate}` : ""}
+                        </span>
                       </div>
                     </div>
 

@@ -20,6 +20,7 @@ import {
 } from "@/lib/services/notification-service";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/lib/context/language-context";
+import { getEffectiveUserStreak } from "@/lib/calculations/streak";
 
 export function NotificationBell() {
   const router = useRouter();
@@ -34,7 +35,7 @@ export function NotificationBell() {
     useState<NotificationPermission>("default");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const userStreak = profile?.currentStreak ?? (profile as any)?.streak ?? 0;
+  const userStreak = getEffectiveUserStreak(profile);
 
   useEffect(() => {
     setReadIds(getReadNotificationIds());

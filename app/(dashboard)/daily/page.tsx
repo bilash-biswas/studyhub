@@ -9,6 +9,7 @@ import {
   hasUserCompletedDailyToday,
 } from "@/lib/services/daily-challenge-service";
 import { recordAttempt } from "@/lib/services/attempt-service";
+import { getEffectiveUserStreak } from "@/lib/calculations/streak";
 import { QuestionRunner } from "@/components/practice/question-runner";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +24,8 @@ import {
 
 export default function DailyChallengePage() {
   const router = useRouter();
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
+  const effectiveStreak = getEffectiveUserStreak(profile);
 
   const [challenge, setChallenge] = useState<DailyChallenge | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -67,6 +69,7 @@ export default function DailyChallengePage() {
         wrongMark: 0,
       });
 
+      await refreshProfile();
       router.push(`/results/${attemptId}`);
     } catch (err) {
       console.error("Failed to save daily attempt:", err);
@@ -116,7 +119,7 @@ export default function DailyChallengePage() {
           <div>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/60 mb-2">
               <Flame className="h-4 w-4 fill-current text-amber-500" />
-              {profile?.currentStreak || 1} Day Streak Protected!
+              {effectiveStreak} Day Streak Protected!
             </span>
             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
               Today&apos;s Challenge Completed!
@@ -167,7 +170,9 @@ export default function DailyChallengePage() {
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Solve all 5 questions to protect your {profile?.currentStreak || 0}-day streak and climb the leaderboard.
+              {effectiveStreak > 0
+                ? `Solve all 5 questions to protect your ${effectiveStreak}-day streak and climb the leaderboard.`
+                : "Solve all 5 questions to start a new 1-day streak today and climb the leaderboard."}
             </p>
           </div>
         </div>
