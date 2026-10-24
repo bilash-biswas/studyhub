@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Question, Exam, Subject } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/lib/context/language-context";
 import {
   getUserBookmarksMap,
   toggleBookmark,
@@ -28,6 +29,7 @@ import {
 export default function BookmarksPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t, n } = useLanguage();
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
@@ -156,14 +158,17 @@ export default function BookmarksPage() {
               <Bookmark className="h-4 w-4" />
             </span>
             <span className="text-xs font-semibold uppercase tracking-wider text-[#4F46E5] dark:text-[#818CF8]">
-              Saved Library
+              {t("সংরক্ষিত লাইব্রেরি", "Saved Library")}
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            Bookmarks (সংরক্ষিত প্রশ্নাবলি)
+            {t("বুকমার্ক (সংরক্ষিত প্রশ্নাবলি)", "Bookmarks (Saved Questions)")}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
-            আপনার অনুশীলন ও পরীক্ষার সময় চিহ্নিত করা প্রশ্নাবলি। প্রতিটি প্রশ্নের নিজস্ব উত্তর, সঠিক উত্তর এবং পূর্ণ ব্যাখ্যা দেখুন।
+            {t(
+              "আপনার অনুশীলন ও পরীক্ষার সময় চিহ্নিত করা প্রশ্নাবলি। প্রতিটি প্রশ্নের নিজস্ব উত্তর, সঠিক উত্তর এবং পূর্ণ ব্যাখ্যা দেখুন।",
+              "Questions saved during your practice and mock exams. Review your recorded answers, correct options, and full explanations."
+            )}
           </p>
         </div>
 
@@ -178,12 +183,12 @@ export default function BookmarksPage() {
             {globalRevealed ? (
               <>
                 <EyeOff className="h-3.5 w-3.5 text-slate-500" />
-                <span>উত্তর লুকান (স্ব-মূল্যায়ন)</span>
+                <span>{t("উত্তর লুকান (স্ব-মূল্যায়ন)", "Hide Answers (Self-Test)")}</span>
               </>
             ) : (
               <>
                 <Eye className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-                <span>সব উত্তর একবারে দেখান</span>
+                <span>{t("সব উত্তর একবারে দেখান", "Reveal All Answers")}</span>
               </>
             )}
           </Button>
@@ -195,7 +200,7 @@ export default function BookmarksPage() {
               className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs gap-1.5 h-9 shadow-xs"
             >
               <Sparkles className="h-3.5 w-3.5" />
-              Practice Bookmarks ({filteredQuestions.length})
+              {t(`বুকমার্ক অনুশীলন করুন (${n(filteredQuestions.length)})`, `Practice Bookmarks (${filteredQuestions.length})`)}
             </Button>
           )}
         </div>

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Question } from "@/types";
 import { MathText } from "@/components/ui/math-text";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/context/language-context";
 import {
   Bookmark,
   CheckCircle2,
@@ -47,6 +48,7 @@ export function StudyQuestionCard({
   showPracticeSingle = false,
   onPracticeSingle,
 }: StudyQuestionCardProps) {
+  const { t, n } = useLanguage();
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(
     initialSelectedOptionId
   );
@@ -132,7 +134,7 @@ export function StudyQuestionCard({
           <div className="flex flex-wrap items-center gap-1.5">
             {/* Question Index Badge */}
             <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-              Q. {index + 1}
+              {t(`প্রশ্ন ${n(index + 1)}`, `Q. ${index + 1}`)}
             </span>
 
             {/* Source / Batch Badge */}
@@ -160,20 +162,20 @@ export function StudyQuestionCard({
               }`}
             >
               {question.difficulty === "easy"
-                ? "সহজ"
+                ? t("সহজ", "Easy")
                 : question.difficulty === "medium"
-                ? "মধ্যম"
-                : "কঠিন"}
+                ? t("মধ্যম", "Medium")
+                : t("কঠিন", "Hard")}
             </span>
 
             {/* Admin Verified Badge */}
             {question.adminVerified && (
               <span
-                title="বিসিএস বিশেষজ্ঞ প্যানেল দ্বারা পরীক্ষিত ও নির্ভুল"
+                title={t("বিসিএস বিশেষজ্ঞ প্যানেল দ্বারা পরীক্ষিত ও নির্ভুল", "Verified by Admin Panel")}
                 className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 shadow-2xs"
               >
                 <ShieldCheck className="h-3 w-3 text-blue-600 dark:text-blue-400" />
-                <span>ভেরিফাইড</span>
+                <span>{t("ভেরিফাইড", "Verified")}</span>
               </span>
             )}
           </div>
@@ -371,12 +373,12 @@ export function StudyQuestionCard({
           {isRevealed ? (
             <>
               <EyeOff className="h-3.5 w-3.5" />
-              <span>উত্তর ও ব্যাখ্যা লুকান (Hide Answer)</span>
+              <span>{t("উত্তর ও ব্যাখ্যা লুকান", "Hide Answer & Explanation")}</span>
             </>
           ) : (
             <>
               <Eye className="h-3.5 w-3.5" />
-              <span>উত্তর ও ব্যাখ্যা দেখুন (Reveal Answer & Explanation)</span>
+              <span>{t("উত্তর ও ব্যাখ্যা দেখুন", "Reveal Answer & Explanation")}</span>
             </>
           )}
         </button>
@@ -386,12 +388,12 @@ export function StudyQuestionCard({
             {selectedOptionId === question.correctOptionId ? (
               <span className="text-emerald-600 dark:text-emerald-400 font-semibold inline-flex items-center gap-1">
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                আপনার উত্তর সঠিক!
+                {t("আপনার উত্তর সঠিক!", "Correct Answer!")}
               </span>
             ) : (
               <span className="text-rose-600 dark:text-rose-400 font-semibold inline-flex items-center gap-1">
                 <XCircle className="h-3.5 w-3.5" />
-                আপনার উত্তর ভুল
+                {t("আপনার উত্তর ভুল", "Incorrect Answer")}
               </span>
             )}
           </div>
@@ -403,7 +405,7 @@ export function StudyQuestionCard({
         <div className="border-t border-indigo-100 dark:border-indigo-950/80 bg-indigo-50/40 dark:bg-indigo-950/20 p-4 sm:p-5">
           <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-400 mb-2">
             <Lightbulb className="h-4 w-4" />
-            <span>বিস্তারিত ব্যাখ্যা ও সমাধান (Explanation)</span>
+            <span>{t("বিস্তারিত ব্যাখ্যা ও সমাধান", "Detailed Explanation & Solution")}</span>
           </div>
           <div className="text-xs sm:text-[13px] text-slate-800 dark:text-slate-200 leading-relaxed">
             <MathText text={question.explanation} />
@@ -434,7 +436,7 @@ export function StudyQuestionCard({
               className="text-xs h-7 gap-1 border-slate-200 dark:border-slate-700"
             >
               <Sparkles className="h-3 w-3 text-[#4F46E5]" />
-              Practice Single
+              {t("একক অনুশীলন", "Practice Single")}
             </Button>
           )}
 
@@ -447,12 +449,12 @@ export function StudyQuestionCard({
             {copied ? (
               <>
                 <Check className="h-3 w-3 text-emerald-600" />
-                <span className="text-emerald-600 font-semibold">কপি হয়েছে!</span>
+                <span className="text-emerald-600 font-semibold">{t("কপি হয়েছে!", "Copied!")}</span>
               </>
             ) : (
               <>
                 <Copy className="h-3 w-3" />
-                <span>কপি প্রশ্ন</span>
+                <span>{t("কপি প্রশ্ন", "Copy Question")}</span>
               </>
             )}
           </button>

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LeaderboardEntry, LeaderboardPeriod } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/lib/context/language-context";
 import { getLeaderboard } from "@/lib/services/leaderboard-service";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +22,7 @@ import {
 export default function LeaderboardPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t, n } = useLanguage();
 
   const [period, setPeriod] = useState<LeaderboardPeriod>("weekly");
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
@@ -55,14 +57,17 @@ export default function LeaderboardPage() {
               <Trophy className="h-4 w-4" />
             </span>
             <span className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-              National Rankings
+              {t("জাতীয় মেধাতালিকা", "National Rankings")}
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            Leaderboard (মেধাতালিকা)
+            {t("মেধাতালিকা (Leaderboard)", "Leaderboard")}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
-            Rankings updated live from practice sessions, mock exams, and daily challenges.
+            {t(
+              "অনুশীলন, মডেল টেস্ট এবং দৈনিক চ্যালেঞ্জের স্কোর অনুযায়ী রিয়েল-টাইম র‍্যাংকিং।",
+              "Rankings updated live from practice sessions, mock exams, and daily challenges."
+            )}
           </p>
         </div>
 
@@ -77,7 +82,7 @@ export default function LeaderboardPage() {
                 : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
             }`}
           >
-            Daily
+            {t("দৈনিক", "Daily")}
           </button>
           <button
             type="button"
@@ -88,7 +93,7 @@ export default function LeaderboardPage() {
                 : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
             }`}
           >
-            Weekly
+            {t("সাপ্তাহিক", "Weekly")}
           </button>
           <button
             type="button"
@@ -99,7 +104,7 @@ export default function LeaderboardPage() {
                 : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
             }`}
           >
-            All-Time
+            {t("সর্বকালীন", "All-Time")}
           </button>
         </div>
       </div>

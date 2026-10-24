@@ -9,6 +9,7 @@ import {
 } from "@/lib/services/mock-test-service";
 import { getExams } from "@/lib/services/exam-service";
 import { getQuestions } from "@/lib/services/question-service";
+import { useLanguage } from "@/lib/context/language-context";
 import { Button } from "@/components/ui/button";
 import {
   Timer,
@@ -24,6 +25,7 @@ import {
 
 export default function MockExamsCatalogPage() {
   const router = useRouter();
+  const { t, n } = useLanguage();
 
   const [mockTests, setMockTests] = useState<MockTest[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
@@ -104,14 +106,17 @@ export default function MockExamsCatalogPage() {
               <Timer className="h-4 w-4" />
             </span>
             <span className="text-xs font-semibold uppercase tracking-wider text-sky-600 dark:text-sky-400">
-              Exam Simulation
+              {t("পরীক্ষা সিমুলেশন", "Exam Simulation")}
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            Timed Mock Exams (মডেল টেস্ট)
+            {t("টাইমড মডেল টেস্ট", "Timed Mock Exams")}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
-            Simulate actual BCS Preliminary and Bank exams with countdown timers, negative marking, and instant evaluation.
+            {t(
+              "কাউন্টডাউন টাইমার, নেগেটিভ মার্কিং এবং তাৎক্ষণিক ফলাফলসহ বিসিএস প্রিলিমিনারি ও ব্যাংক পরীক্ষার পূর্ণাঙ্গ সিমুলেশন।",
+              "Simulate actual BCS Preliminary and Bank exams with countdown timers, negative marking, and instant evaluation."
+            )}
           </p>
         </div>
 
@@ -122,7 +127,7 @@ export default function MockExamsCatalogPage() {
           className="text-xs gap-1.5 shrink-0"
         >
           <Sparkles className="h-3.5 w-3.5 text-[#4F46E5]" />
-          Custom Practice
+          {t("কাস্টম অনুশীলন", "Custom Practice")}
         </Button>
       </div>
 
@@ -137,7 +142,7 @@ export default function MockExamsCatalogPage() {
               : "bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300"
           }`}
         >
-          All Exams ({mockTests.length})
+          {t(`সব পরীক্ষা (${n(mockTests.length)})`, `All Exams (${mockTests.length})`)}
         </button>
 
         {exams.map((ex) => (
@@ -164,12 +169,17 @@ export default function MockExamsCatalogPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search BCS batches, years, or exam titles (e.g. 46th, 10th)..."
+            placeholder={t(
+              "বিসিএস ব্যাচ, সাল বা পরীক্ষার নাম দিয়ে খুঁজুন (যেমন: 46th, 10th)...",
+              "Search BCS batches, years, or exam titles (e.g. 46th, 10th)..."
+            )}
             className="w-full pl-9 pr-3 py-1.5 text-xs bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>
         <div className="text-xs text-slate-500 dark:text-slate-400">
-          Showing <span className="font-semibold text-slate-900 dark:text-slate-100">{filteredTests.length}</span> examinations
+          {t("প্রদর্শিত হচ্ছে", "Showing")}{" "}
+          <span className="font-semibold text-slate-900 dark:text-slate-100">{n(filteredTests.length)}</span>{" "}
+          {t("টি মডেল টেস্ট", "examinations")}
         </div>
       </div>
 
@@ -222,21 +232,21 @@ export default function MockExamsCatalogPage() {
                   <div className="grid grid-cols-3 gap-2 py-2 border-y border-slate-100 dark:border-slate-800 text-center text-xs">
                     <div>
                       <div className="font-bold text-slate-900 dark:text-slate-100">
-                        {test.durationMinutes}m
+                        {n(test.durationMinutes)}m
                       </div>
-                      <div className="text-[11px] text-slate-500">Duration</div>
+                      <div className="text-[11px] text-slate-500">{t("সময়", "Duration")}</div>
                     </div>
                     <div>
                       <div className="font-bold text-slate-900 dark:text-slate-100">
-                        {test.totalQuestions}
+                        {n(test.totalQuestions)}
                       </div>
-                      <div className="text-[11px] text-slate-500">Questions</div>
+                      <div className="text-[11px] text-slate-500">{t("প্রশ্ন", "Questions")}</div>
                     </div>
                     <div>
                       <div className="font-bold text-slate-900 dark:text-slate-100">
                         +{test.correctMark} / -{test.wrongMark}
                       </div>
-                      <div className="text-[11px] text-slate-500">Marking</div>
+                      <div className="text-[11px] text-slate-500">{t("মার্কিং", "Marking")}</div>
                     </div>
                   </div>
                 </div>
@@ -246,7 +256,7 @@ export default function MockExamsCatalogPage() {
                     onClick={() => router.push(`/exams/${test.id}`)}
                     className="w-full bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs gap-1.5 shadow-xs"
                   >
-                    <span>Take Mock Exam</span>
+                    <span>{t("পরীক্ষা শুরু করুন", "Take Mock Exam")}</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </Button>
                 </div>

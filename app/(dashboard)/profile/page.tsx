@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/lib/context/language-context";
 import { updateProfile } from "firebase/auth";
 import { updateDoc } from "firebase/firestore";
 import { userDoc } from "@/lib/firebase/firestore";
@@ -27,6 +28,7 @@ import { calculateAccuracy } from "@/lib/calculations/accuracy";
 export default function ProfilePage() {
   const router = useRouter();
   const { user, profile, logout } = useAuth();
+  const { t, n } = useLanguage();
 
   const [name, setName] = useState(profile?.name || user?.displayName || "");
   const [isEditing, setIsEditing] = useState(false);
@@ -103,7 +105,7 @@ export default function ProfilePage() {
           className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 gap-1.5 shrink-0"
         >
           <LogOut className="h-3.5 w-3.5" />
-          Sign Out
+          {t("লগআউট", "Sign Out")}
         </Button>
       </div>
 
@@ -112,35 +114,35 @@ export default function ProfilePage() {
         {/* Questions Solved */}
         <div className="bg-white dark:bg-[#111827] p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs text-center space-y-1">
           <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            {totalAnswered}
+            {n(totalAnswered)}
           </div>
-          <div className="text-xs text-slate-500 font-medium">Questions Solved</div>
+          <div className="text-xs text-slate-500 font-medium">{t("সমাধানকৃত প্রশ্ন", "Questions Solved")}</div>
         </div>
 
         {/* Overall Accuracy */}
         <div className="bg-white dark:bg-[#111827] p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs text-center space-y-1">
           <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-            {accuracy}%
+            {n(accuracy)}%
           </div>
-          <div className="text-xs text-slate-500 font-medium">Overall Accuracy</div>
+          <div className="text-xs text-slate-500 font-medium">{t("সঠিকতার হার", "Overall Accuracy")}</div>
         </div>
 
         {/* Current Streak */}
         <div className="bg-white dark:bg-[#111827] p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs text-center space-y-1">
           <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 flex items-center justify-center gap-1">
             <Flame className="h-6 w-6 fill-current" />
-            <span>{profile?.currentStreak || 0}</span>
+            <span>{n(profile?.currentStreak || 0)}</span>
           </div>
-          <div className="text-xs text-slate-500 font-medium">Current Streak</div>
+          <div className="text-xs text-slate-500 font-medium">{t("বর্তমান স্ট্রিক", "Current Streak")}</div>
         </div>
 
         {/* Longest Streak */}
         <div className="bg-white dark:bg-[#111827] p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs text-center space-y-1">
           <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 flex items-center justify-center gap-1">
             <Award className="h-6 w-6" />
-            <span>{profile?.longestStreak || 0}</span>
+            <span>{n(profile?.longestStreak || 0)}</span>
           </div>
-          <div className="text-xs text-slate-500 font-medium">Longest Streak</div>
+          <div className="text-xs text-slate-500 font-medium">{t("সর্বোচ্চ স্ট্রিক", "Longest Streak")}</div>
         </div>
       </div>
 

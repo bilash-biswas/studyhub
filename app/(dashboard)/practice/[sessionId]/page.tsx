@@ -33,6 +33,7 @@ export default function PracticeSessionPage() {
         let config = {
           examId: "exam_bcs",
           subjectId: undefined as string | undefined,
+          batchTag: undefined as string | undefined,
           difficulty: "all" as "easy" | "medium" | "hard" | "all",
           count: 10,
           feedbackMode: "instant" as "instant" | "exam",
@@ -78,11 +79,12 @@ export default function PracticeSessionPage() {
           const filters: any = { status: "published" };
           if (config.examId) filters.examId = config.examId;
           if (config.subjectId) filters.subjectId = config.subjectId;
+          if (config.batchTag) filters.tag = config.batchTag;
           if (config.difficulty && config.difficulty !== "all") {
             filters.difficulty = config.difficulty;
           }
 
-          let res = await getQuestions(filters, 50);
+          let res = await getQuestions(filters, Math.max(80, config.count * 2));
 
           // If pool is empty, auto-seed sample questions and refetch
           if (res.questions.length === 0) {
@@ -96,6 +98,7 @@ export default function PracticeSessionPage() {
             examId: config.examId,
             subjectId: config.subjectId,
             difficulty: config.difficulty,
+            tags: config.batchTag ? [config.batchTag] : undefined,
           });
 
           if (selected.length === 0) {

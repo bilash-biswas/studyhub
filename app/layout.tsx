@@ -40,6 +40,7 @@ export const metadata: Metadata = {
 
 import { AuthProvider } from "@/lib/context/auth-context";
 import { ThemeProvider } from "@/lib/context/theme-context";
+import { LanguageProvider } from "@/lib/context/language-context";
 
 export default function RootLayout({
   children,
@@ -54,7 +55,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans bg-background text-foreground antialiased selection:bg-indigo-100 selection:text-indigo-900 dark:selection:bg-indigo-900 dark:selection:text-indigo-100">
         <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <LanguageProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

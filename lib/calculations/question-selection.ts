@@ -43,9 +43,15 @@ export function selectQuestions(
   }
 
   if (options.tags && options.tags.length > 0) {
-    const lowerTags = options.tags.map((t) => t.toLowerCase().trim());
+    const expandedTags = new Set<string>();
+    options.tags.forEach((t) => {
+      const clean = t.toLowerCase().trim();
+      expandedTags.add(clean);
+      expandedTags.add(clean.replace(/^(\d+(?:st|nd|rd|th))-bcs$/, "$1bcs-bcs"));
+      expandedTags.add(clean.replace(/^(\d+(?:st|nd|rd|th))bcs-bcs$/, "$1-bcs"));
+    });
     filtered = filtered.filter((q) =>
-      q.tags.some((tag) => lowerTags.includes(tag.toLowerCase().trim()))
+      q.tags.some((tag) => expandedTags.has(tag.toLowerCase().trim()))
     );
   }
 

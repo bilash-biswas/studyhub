@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/lib/context/language-context";
 import { Exam, Subject } from "@/types";
 import { getExams } from "@/lib/services/exam-service";
 import { getSubjects } from "@/lib/services/subject-service";
@@ -28,6 +29,7 @@ import {
 export default function LiveQuizLobbyPage() {
   const router = useRouter();
   const { user, profile } = useAuth();
+  const { t } = useLanguage();
 
   const [exams, setExams] = useState<Exam[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -153,14 +155,17 @@ export default function LiveQuizLobbyPage() {
               <Users2 className="h-4 w-4" />
             </span>
             <span className="text-xs font-semibold uppercase tracking-wider text-sky-600 dark:text-sky-400">
-              Multiplayer Arena
+              {t("মাল্টিপ্লেয়ার এরিনা", "Multiplayer Arena")}
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            Live Quiz Rooms (লাইভ কুইজ)
+            {t("লাইভ কুইজ রুম (Live Quiz)", "Live Quiz Rooms")}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
-            Compete in real-time head-to-head quiz matches against classmates and candidates with synchronous 20s timers.
+            {t(
+              "সহপাঠী ও বন্ধুদের সাথে ২০ সেকেন্ডের রিয়েল-টাইম টাইমারে সরাসরি কুইজ প্রতিযোগিতায় অংশ নিন।",
+              "Compete in real-time head-to-head quiz matches against classmates and candidates with synchronous 20s timers."
+            )}
           </p>
         </div>
       </div>
@@ -174,10 +179,10 @@ export default function LiveQuizLobbyPage() {
             </div>
             <div>
               <h2 className="font-bold text-base text-slate-900 dark:text-slate-100">
-                Join with Room Code
+                {t("রুম কোড দিয়ে যুক্ত হোন", "Join with Room Code")}
               </h2>
               <p className="text-xs text-slate-500">
-                Enter the 6-character code provided by the quiz host.
+                {t("কুইজ হোস্টের দেওয়া ৬-অক্ষরের কোডটি লিখুন।", "Enter the 6-character code provided by the quiz host.")}
               </p>
             </div>
           </div>

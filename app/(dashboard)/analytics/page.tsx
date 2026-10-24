@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/lib/context/language-context";
 import { getSubjects } from "@/lib/services/subject-service";
 import {
   getUserAggregatedAnalytics,
@@ -27,6 +28,7 @@ import {
 export default function AnalyticsPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t, n } = useLanguage();
 
   const [analytics, setAnalytics] = useState<UserAnalyticsOverview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -109,14 +111,17 @@ export default function AnalyticsPage() {
               <BarChart3 className="h-4 w-4" />
             </span>
             <span className="text-xs font-semibold uppercase tracking-wider text-[#4F46E5] dark:text-[#818CF8]">
-              Continuous Analytics
+              {t("ধারাবাহিক মূল্যায়ন", "Continuous Analytics")}
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            Performance Analytics & Weak-Topic Diagnosis
+            {t("পারফরম্যান্স অ্যানালিটিক্স ও দুর্বল অধ্যায় বিশ্লেষণ", "Performance Analytics & Weak-Topic Diagnosis")}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
-            Real-time accuracy metrics and rule-based diagnostic analysis of your preparation progress.
+            {t(
+              "আপনার অনুশীলনের রিয়েল-টাইম সঠিকতার হার এবং বিষয়ভিত্তিক দুর্বলতা নির্ণয়।",
+              "Real-time accuracy metrics and rule-based diagnostic analysis of your preparation progress."
+            )}
           </p>
         </div>
 
@@ -126,7 +131,7 @@ export default function AnalyticsPage() {
           className="text-xs gap-1.5 shrink-0"
         >
           <Sparkles className="h-3.5 w-3.5" />
-          Quick Practice
+          {t("দ্রুত অনুশীলন", "Quick Practice")}
         </Button>
       </div>
 
@@ -138,9 +143,9 @@ export default function AnalyticsPage() {
             <Target className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-xs text-slate-500 font-medium">Questions</div>
+            <div className="text-xs text-slate-500 font-medium">{t("সমাধানকৃত প্রশ্ন", "Questions")}</div>
             <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
-              {totalAnswered}
+              {n(totalAnswered)}
             </div>
           </div>
         </div>
@@ -151,9 +156,9 @@ export default function AnalyticsPage() {
             <TrendingUp className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-xs text-slate-500 font-medium">Overall Accuracy</div>
+            <div className="text-xs text-slate-500 font-medium">{t("সঠিকতার হার", "Overall Accuracy")}</div>
             <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
-              {overallAccuracy}%
+              {n(overallAccuracy)}%
             </div>
           </div>
         </div>
@@ -164,9 +169,9 @@ export default function AnalyticsPage() {
             <Clock className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-xs text-slate-500 font-medium">Study Time</div>
+            <div className="text-xs text-slate-500 font-medium">{t("অধ্যয়নের সময়", "Study Time")}</div>
             <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
-              {totalStudyMinutes}m
+              {n(totalStudyMinutes)}m
             </div>
           </div>
         </div>
@@ -177,9 +182,9 @@ export default function AnalyticsPage() {
             <Award className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-xs text-slate-500 font-medium">Attempts</div>
+            <div className="text-xs text-slate-500 font-medium">{t("মোট সেশন", "Attempts")}</div>
             <div className="text-xl font-bold text-slate-900 dark:text-slate-100">
-              {totalAttempts}
+              {n(totalAttempts)}
             </div>
           </div>
         </div>

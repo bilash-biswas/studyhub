@@ -2,83 +2,39 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Question, Exam, Subject } from "@/types";
-import { getQuestions, QuestionFilters } from "@/lib/services/question-service";
+import {
+  getQuestions,
+  getSubjectQuestionCounts,
+  QuestionFilters,
+} from "@/lib/services/question-service";
 import { getExams } from "@/lib/services/exam-service";
 import { getSubjectsByExamId } from "@/lib/services/subject-service";
 import { toggleBookmark, getUserBookmarkIds } from "@/lib/services/bookmark-service";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/lib/context/language-context";
+import { BCS_BATCHES } from "@/lib/constants/bcs-batches";
 import { StudyQuestionCard } from "@/components/question-bank/study-question-card";
 import { Button } from "@/components/ui/button";
 import { DocumentSnapshot } from "firebase/firestore";
 import {
   BookOpen,
-  Sparkles,
   Search,
-  Filter,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   RotateCcw,
-  BookMarked,
-  Lightbulb,
-  GraduationCap,
   Eye,
   EyeOff,
 } from "lucide-react";
 
-// BCS Preliminary Batches sorted newest to oldest
-const BCS_BATCHES = [
-  { id: "", label: "সব বিসিএস ব্যাচ (All Batches)" },
-  { id: "50th-bcs", label: "৫০তম বিসিএস (50th BCS)" },
-  { id: "49th-bcs", label: "৪৯তম বিসিএস (49th BCS)" },
-  { id: "48th-bcs", label: "৪৮তম বিসিএস (48th BCS)" },
-  { id: "47th-bcs", label: "৪৭তম বিসিএস (47th BCS)" },
-  { id: "46th-bcs", label: "৪৬তম বিসিএস (46th BCS)" },
-  { id: "45th-bcs", label: "৪৫তম বিসিএস (45th BCS)" },
-  { id: "44th-bcs", label: "৪৪তম বিসিএস (44th BCS)" },
-  { id: "43rd-bcs", label: "৪৩তম বিসিএস (43rd BCS)" },
-  { id: "42nd-bcs", label: "৪২তম বিসিএস বিশেষ (42nd BCS Special)" },
-  { id: "41st-bcs", label: "৪১তম বিসিএস (41st BCS)" },
-  { id: "40th-bcs", label: "৪০তম বিসিএস (40th BCS)" },
-  { id: "39th-bcs", label: "৩৯তম বিসিএস বিশেষ (39th BCS Special)" },
-  { id: "38th-bcs", label: "৩৮তম বিসিএস (38th BCS)" },
-  { id: "37th-bcs", label: "৩৭তম বিসিএস (37th BCS)" },
-  { id: "36th-bcs", label: "৩৬তম বিসিএস (36th BCS)" },
-  { id: "35th-bcs", label: "৩৫তম বিসিএস (35th BCS)" },
-  { id: "34th-bcs", label: "৩৪তম বিসিএস (34th BCS)" },
-  { id: "33rd-bcs", label: "৩৩তম বিসিএস (33rd BCS)" },
-  { id: "32nd-bcs", label: "৩২তম বিসিএস (32nd BCS)" },
-  { id: "31st-bcs", label: "৩১তম বিসিএস (31st BCS)" },
-  { id: "30th-bcs", label: "৩০তম বিসিএস (30th BCS)" },
-  { id: "29th-bcs", label: "২৯তম বিসিএস (29th BCS)" },
-  { id: "28th-bcs", label: "২৮তম বিসিএস (28th BCS)" },
-  { id: "27th-bcs", label: "২৭তম বিসিএস (27th BCS)" },
-  { id: "26th-bcs", label: "২৬তম বিসিএস (26th BCS)" },
-  { id: "25th-bcs", label: "২৫তম বিসিএস (25th BCS)" },
-  { id: "24th-bcs", label: "২৪তম বিসিএস (24th BCS)" },
-  { id: "23rd-bcs", label: "২৩তম বিসিএস (23rd BCS)" },
-  { id: "22nd-bcs", label: "২২তম বিসিএস (22nd BCS)" },
-  { id: "21st-bcs", label: "২১তম বিসিএস (21st BCS)" },
-  { id: "20th-bcs", label: "২০তম বিসিএস (20th BCS)" },
-  { id: "19th-bcs", label: "১৯তম বিসিএস (19th BCS)" },
-  { id: "18th-bcs", label: "১৮তম বিসিএস (18th BCS)" },
-  { id: "17th-bcs", label: "১৭তম বিসিএস (17th BCS)" },
-  { id: "16th-bcs", label: "১৬তম বিসিএস (16th BCS)" },
-  { id: "15th-bcs", label: "১৫তম বিসিএস (15th BCS)" },
-  { id: "14th-bcs", label: "১৪তম বিসিএস (14th BCS)" },
-  { id: "13th-bcs", label: "১৩তম বিসিএস (13th BCS)" },
-  { id: "12th-bcs", label: "১২তম বিসিএস (12th BCS)" },
-  { id: "11th-bcs", label: "১১তম বিসিএস (11th BCS)" },
-  { id: "10th-bcs", label: "১০ম বিসিএস (10th BCS)" },
-];
-
 export default function QuestionBankStudyPage() {
   const { user } = useAuth();
+  const { lang, t, n } = useLanguage();
 
   // Core Data State
   const [questions, setQuestions] = useState<Question[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [subjectCounts, setSubjectCounts] = useState<Record<string, number>>({});
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
@@ -120,7 +76,7 @@ export default function QuestionBankStudyPage() {
     init();
   }, [user]);
 
-  // 2. Load Subjects when Exam changes
+  // 2. Load Subjects & Live Question Counts when Exam changes
   useEffect(() => {
     async function loadSubjects() {
       if (!selectedExamId) return;
@@ -128,12 +84,23 @@ export default function QuestionBankStudyPage() {
         const subs = await getSubjectsByExamId(selectedExamId);
         setSubjects(subs);
         setSelectedSubjectId(""); // reset subject
+
+        if (subs.length > 0) {
+          const counts = await getSubjectQuestionCounts(subs.map((s) => s.id));
+          setSubjectCounts(counts);
+        } else {
+          setSubjectCounts({});
+        }
       } catch (err) {
         console.error("Error loading subjects:", err);
       }
     }
     loadSubjects();
   }, [selectedExamId]);
+
+  const totalExamQuestionCount = useMemo(() => {
+    return Object.values(subjectCounts).reduce((acc, c) => acc + c, 0);
+  }, [subjectCounts]);
 
   // 3. Subject Name Lookup Map
   const subjectMap = useMemo(() => {
@@ -213,11 +180,10 @@ export default function QuestionBankStudyPage() {
   // Bookmark Toggle Handler
   const handleToggleBookmark = async (questionId: string) => {
     if (!user) {
-      alert("বুকমার্ক করতে অনুগ্রহ করে লগইন করুন।");
+      alert(t("বুকমার্ক করতে অনুগ্রহ করে লগইন করুন।", "Please sign in to bookmark questions."));
       return;
     }
 
-    // Optimistic toggle
     setBookmarkedIds((prev) => {
       const next = new Set(prev);
       if (next.has(questionId)) {
@@ -232,7 +198,6 @@ export default function QuestionBankStudyPage() {
       await toggleBookmark(user.uid, questionId);
     } catch (err) {
       console.error("Failed to toggle bookmark:", err);
-      // Revert on error
       setBookmarkedIds((prev) => {
         const next = new Set(prev);
         if (next.has(questionId)) next.delete(questionId);
@@ -274,14 +239,17 @@ export default function QuestionBankStudyPage() {
               <BookOpen className="h-4 w-4" />
             </span>
             <span className="text-xs font-bold uppercase tracking-wider text-[#4F46E5] dark:text-[#818CF8]">
-              Question Bank Study
+              {t("প্রশ্ন ব্যাংক অধ্যয়ন", "Question Bank Study")}
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            প্রশ্ন ব্যাংক ও প্রস্তুতি আর্কাইভ (Study Archive)
+            {t("প্রশ্ন ব্যাংক ও প্রস্তুতি আর্কাইভ", "Question Bank & Study Archive")}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl leading-relaxed">
-            বিসিএস ও সরকারি চাকরির বিগত বছরের ৫,৪০০+ প্রশ্ন সমাধান, বিস্তারিত ব্যাখ্যা ও সূত্রসহ নির্ভুলভাবে পড়ুন।
+            {t(
+              "বিসিএস ও সরকারি চাকরির বিগত বছরের ৫,৪২৩+ ভেরিফাইড প্রশ্ন সমাধান, বিস্তারিত ব্যাখ্যা ও গাণিতিক সূত্রসহ নির্ভুলভাবে পড়ুন।",
+              "Study 5,423+ verified past BCS and government job questions with interactive answers, detailed explanations, and KaTeX formulas."
+            )}
           </p>
         </div>
 
@@ -290,27 +258,27 @@ export default function QuestionBankStudyPage() {
           <button
             type="button"
             onClick={() => setAutoRevealAll(false)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
               !autoRevealAll
                 ? "bg-white dark:bg-[#111827] text-indigo-600 dark:text-indigo-400 shadow-xs"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
             }`}
           >
             <EyeOff className="h-3.5 w-3.5" />
-            <span>উত্তর লুকানো (স্ব-মূল্যায়ন)</span>
+            <span>{t("উত্তর লুকানো (স্ব-মূল্যায়ন)", "Hide Answers (Self-Test)")}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setAutoRevealAll(true)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
               autoRevealAll
                 ? "bg-white dark:bg-[#111827] text-indigo-600 dark:text-indigo-400 shadow-xs"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
             }`}
           >
             <Eye className="h-3.5 w-3.5" />
-            <span>সব উত্তর একবারে দেখান</span>
+            <span>{t("সব উত্তর একবারে দেখান", "Reveal All Answers")}</span>
           </button>
         </div>
       </div>
@@ -325,7 +293,7 @@ export default function QuestionBankStudyPage() {
               setSelectedExamId(ex.id);
               setSelectedSubjectId("");
             }}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
               selectedExamId === ex.id
                 ? "bg-[#4F46E5] text-white shadow-xs"
                 : "bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300"
@@ -336,35 +304,62 @@ export default function QuestionBankStudyPage() {
         ))}
       </div>
 
-      {/* 3. Multi-Level Subject Filter Carousel */}
+      {/* 3. Multi-Level Subject Filter Carousel with Live Firestore Question Counts */}
       {subjects.length > 0 && (
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           <button
             type="button"
             onClick={() => setSelectedSubjectId("")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
               selectedSubjectId === ""
                 ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold"
                 : "bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300"
             }`}
           >
-            সব বিষয় (All Subjects)
+            <span>{t("সব বিষয়", "All Subjects")}</span>
+            {totalExamQuestionCount > 0 && (
+              <span
+                className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
+                  selectedSubjectId === ""
+                    ? "bg-white/20 text-white dark:bg-slate-900/20 dark:text-slate-900"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                }`}
+              >
+                {n(totalExamQuestionCount)}
+              </span>
+            )}
           </button>
 
-          {subjects.map((sub) => (
-            <button
-              key={sub.id}
-              type="button"
-              onClick={() => setSelectedSubjectId(sub.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition-all ${
-                selectedSubjectId === sub.id
-                  ? "bg-[#4F46E5] text-white font-semibold"
-                  : "bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300"
-              }`}
-            >
-              {sub.name}
-            </button>
-          ))}
+          {subjects.map((sub) => {
+            const count = subjectCounts[sub.id];
+            const isSelected = selectedSubjectId === sub.id;
+
+            return (
+              <button
+                key={sub.id}
+                type="button"
+                onClick={() => setSelectedSubjectId(sub.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
+                  isSelected
+                    ? "bg-[#4F46E5] text-white font-semibold shadow-2xs"
+                    : "bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300"
+                }`}
+              >
+                <span>{sub.name}</span>
+                {typeof count === "number" && (
+                  <span
+                    className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
+                      isSelected
+                        ? "bg-white/20 text-white"
+                        : "bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300"
+                    }`}
+                  >
+                    {n(count)}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -377,7 +372,10 @@ export default function QuestionBankStudyPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="প্রশ্ন বা সমাধান সার্চ করুন (যেমন: চর্যাপদ, log, পাল বংশ)..."
+            placeholder={t(
+              "প্রশ্ন বা সমাধান সার্চ করুন (যেমন: চর্যাপদ, log, পাল বংশ)...",
+              "Search question or explanation (e.g. Charyapada, log, Pala dynasty)..."
+            )}
             className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>
@@ -393,7 +391,7 @@ export default function QuestionBankStudyPage() {
             >
               {BCS_BATCHES.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.label}
+                  {lang === "bn" ? b.labelBn : b.labelEn}
                 </option>
               ))}
             </select>
@@ -405,10 +403,10 @@ export default function QuestionBankStudyPage() {
             onChange={(e) => setSelectedDifficulty(e.target.value)}
             className="px-3 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
-            <option value="all">সব কাঠিন্য (Difficulty)</option>
-            <option value="easy">সহজ (Easy)</option>
-            <option value="medium">মধ্যম (Medium)</option>
-            <option value="hard">কঠিন (Hard)</option>
+            <option value="all">{t("সব কাঠিন্য (All Difficulty)", "All Difficulties")}</option>
+            <option value="easy">{t("সহজ (Easy)", "Easy")}</option>
+            <option value="medium">{t("মধ্যম (Medium)", "Medium")}</option>
+            <option value="hard">{t("কঠিন (Hard)", "Hard")}</option>
           </select>
 
           {/* Admin Verified Filter */}
@@ -417,8 +415,8 @@ export default function QuestionBankStudyPage() {
             onChange={(e) => setSelectedVerified(e.target.value)}
             className="px-3 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
-            <option value="all">সকল প্রশ্ন (All Questions)</option>
-            <option value="verified">ভেরিফাইড প্রশ্ন (Admin Verified)</option>
+            <option value="all">{t("সকল প্রশ্ন (All Questions)", "All Questions")}</option>
+            <option value="verified">{t("ভেরিফাইড প্রশ্ন (Admin Verified)", "Admin Verified Only")}</option>
           </select>
 
           {/* Reset Filters */}
@@ -431,7 +429,7 @@ export default function QuestionBankStudyPage() {
               className="text-xs gap-1.5 text-slate-600 dark:text-slate-400"
             >
               <RotateCcw className="h-3.5 w-3.5" />
-              <span>রিসেট</span>
+              <span>{t("রিসেট", "Reset")}</span>
             </Button>
           )}
         </div>
@@ -463,10 +461,13 @@ export default function QuestionBankStudyPage() {
         <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center space-y-3">
           <BookOpen className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto" />
           <h3 className="font-bold text-base text-slate-800 dark:text-slate-200">
-            কোন প্রশ্ন পাওয়া যায়নি
+            {t("কোন প্রশ্ন পাওয়া যায়নি", "No Questions Found")}
           </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            আপনার নির্বাচিত ফিল্টার বা সার্চ কিওয়ার্ডের সাথে মিল রেখে কোনো প্রশ্ন পাওয়া যায়নি। ফিল্টার রিসেট করে পুনরায় চেষ্টা করুন।
+            {t(
+              "আপনার নির্বাচিত ফিল্টার বা সার্চ কিওয়ার্ডের সাথে মিল রেখে কোনো প্রশ্ন পাওয়া যায়নি। ফিল্টার রিসেট করে পুনরায় চেষ্টা করুন।",
+              "No questions matched your selected filters or search keywords. Please reset your filters and try again."
+            )}
           </p>
           <Button
             onClick={handleResetFilters}
@@ -475,7 +476,7 @@ export default function QuestionBankStudyPage() {
             className="text-xs gap-1.5 mt-2"
           >
             <RotateCcw className="h-3.5 w-3.5" />
-            <span>ফিল্টার রিসেট করুন</span>
+            <span>{t("ফিল্টার রিসেট করুন", "Reset Filters")}</span>
           </Button>
         </div>
       ) : (
@@ -506,11 +507,14 @@ export default function QuestionBankStudyPage() {
             className="text-xs gap-1 text-slate-700 dark:text-slate-300"
           >
             <ChevronLeft className="h-4 w-4" />
-            <span>পূর্ববর্তী পাতা</span>
+            <span>{t("পূর্ববর্তী পাতা", "Previous Page")}</span>
           </Button>
 
           <div className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-            পৃষ্ঠা {currentPage} • {questions.length}টি প্রশ্ন প্রদর্শিত
+            {t(
+              `পৃষ্ঠা ${n(currentPage)} • ${n(questions.length)}টি প্রশ্ন প্রদর্শিত`,
+              `Page ${currentPage} • Showing ${questions.length} questions`
+            )}
           </div>
 
           <Button
@@ -521,7 +525,7 @@ export default function QuestionBankStudyPage() {
             disabled={!hasMore || loading}
             className="text-xs gap-1 text-slate-700 dark:text-slate-300"
           >
-            <span>পরবর্তী পাতা</span>
+            <span>{t("পরবর্তী পাতা", "Next Page")}</span>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>

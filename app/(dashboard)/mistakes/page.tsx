@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Question, Exam, Subject } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/lib/context/language-context";
 import {
   getUserMistakeQuestionIds,
   removeMistake,
@@ -31,6 +32,7 @@ import {
 export default function MistakeBankPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t, n } = useLanguage();
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
@@ -170,14 +172,17 @@ export default function MistakeBankPage() {
               <AlertTriangle className="h-4 w-4" />
             </span>
             <span className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-              Active Recall
+              {t("অ্যাক্টিভ রিকল", "Active Recall")}
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            Mistake Bank (ভুল প্রশ্নাবলি)
+            {t("ভুল প্রশ্ন ব্যাংক (Mistake Bank)", "Mistake Bank")}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
-            যেসব প্রশ্নে আপনার ভুল উত্তর হয়েছিল সেগুলোর নিজস্ব রেকর্ড, সঠিক উত্তর ও পূর্ণ সমাধান।
+            {t(
+              "যেসব প্রশ্নে আপনার ভুল উত্তর হয়েছিল সেগুলোর নিজস্ব রেকর্ড, সঠিক উত্তর ও পূর্ণ সমাধান।",
+              "Personal record of every question you answered incorrectly, with correct options and step-by-step solutions."
+            )}
           </p>
         </div>
 
@@ -192,12 +197,12 @@ export default function MistakeBankPage() {
             {globalRevealed ? (
               <>
                 <EyeOff className="h-3.5 w-3.5 text-slate-500" />
-                <span>উত্তর লুকান (অনুশীলন)</span>
+                <span>{t("উত্তর লুকান (অনুশীলন)", "Hide Answers (Practice)")}</span>
               </>
             ) : (
               <>
                 <Eye className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-                <span>সব উত্তর একবারে দেখান</span>
+                <span>{t("সব উত্তর একবারে দেখান", "Reveal All Answers")}</span>
               </>
             )}
           </Button>
@@ -209,7 +214,7 @@ export default function MistakeBankPage() {
               className="bg-amber-600 hover:bg-amber-700 text-white text-xs gap-1.5 h-9 shadow-xs"
             >
               <Sparkles className="h-3.5 w-3.5" />
-              Drill Mistakes ({filteredQuestions.length})
+              {t(`ভুলগুলো অনুশীলন করুন (${n(filteredQuestions.length)})`, `Drill Mistakes (${filteredQuestions.length})`)}
             </Button>
           )}
         </div>
