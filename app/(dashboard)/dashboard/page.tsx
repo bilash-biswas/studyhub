@@ -10,7 +10,11 @@ import { getUserBookmarkIds } from "@/lib/services/bookmark-service";
 import { getUserMistakeQuestionIds } from "@/lib/services/analytics-service";
 import { getExams } from "@/lib/services/exam-service";
 import { getSubjects } from "@/lib/services/subject-service";
-import { Attempt, Exam, Subject } from "@/types";
+import {
+  getNotifications,
+  matchesStreakTarget,
+} from "@/lib/services/notification-service";
+import { Attempt, Exam, Subject, AppNotification } from "@/types";
 import { calculateAccuracy } from "@/lib/calculations/accuracy";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +28,7 @@ import {
   BarChart3,
   ArrowRight,
   ChevronRight,
+  Bell,
 } from "lucide-react";
 import { MobileAppDownload } from "@/components/shared/mobile-app-download";
 
@@ -35,6 +40,7 @@ export default function DashboardPage() {
   const [recentAttempts, setRecentAttempts] = useState<Attempt[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [bookmarkCount, setBookmarkCount] = useState(0);
   const [mistakeCount, setMistakeCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -44,19 +50,22 @@ export default function DashboardPage() {
       if (!user) return;
       setLoading(true);
       try {
-        const [attList, exList, subList, bms, mistakes] = await Promise.all([
-          getUserRecentAttempts(user.uid, 5),
-          getExams(),
-          getSubjects(),
-          getUserBookmarkIds(user.uid),
-          getUserMistakeQuestionIds(user.uid),
-        ]);
+        const [attList, exList, subList, bms, mistakes, notifList] =
+          await Promise.all([
+            getUserRecentAttempts(user.uid, 5),
+            getExams(),
+            getSubjects(),
+            getUserBookmarkIds(user.uid),
+            getUserMistakeQuestionIds(user.uid),
+            getNotifications(15),
+          ]);
 
         setRecentAttempts(attList);
         setExams(exList);
         setSubjects(subList);
         setBookmarkCount(bms.length);
         setMistakeCount(mistakes.length);
+        setNotifications(notifList);
       } catch (err) {
         console.error("Failed to load dashboard data:", err);
       } finally {
@@ -75,6 +84,10 @@ export default function DashboardPage() {
   const totalCorrect = profile?.totalCorrect || 0;
   const accuracy = calculateAccuracy(totalCorrect, totalQuestions);
 
+  const pinnedNotifications = notifications.filter(
+    (item) => item.isPinned && matchesStreakTarget(item, currentStreak)
+  );
+
   if (loading) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
@@ -90,6 +103,39 @@ export default function DashboardPage() {
 
   return (
     <div className="w-full space-y-6 pb-20">
+      {/* Pinned Admin Announcement / Streak Banner */}
+      {pinnedNotifications.length > 0 && (
+        <div className="space-y-2.5">
+          {pinnedNotifications.slice(0, 2).map((pin) => (
+            <div
+              key={pin.id}
+              onClick={() => pin.actionUrl && router.push(pin.actionUrl)}
+              className="p-4 rounded-xl border border-indigo-300 dark:border-indigo-800 bg-linear-to-r from-indigo-600/10 via-indigo-50/80 to-white dark:from-indigo-950/60 dark:via-indigo-900/20 dark:to-[#111827] flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:border-indigo-500 transition-all shadow-xs"
+            >
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                  <Bell className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
+                    {pin.title}
+                  </h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                    {pin.body}
+                  </p>
+                </div>
+              </div>
+              {pin.actionUrl && (
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 shrink-0">
+                  {t("বিস্তারিত দেখুন", "Open Now")}
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Welcome Banner */}
       <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5 bg-linear-to-r from-white via-indigo-50/20 to-white dark:from-[#111827] dark:via-indigo-950/20 dark:to-[#111827]">
         <div>

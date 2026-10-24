@@ -6,3 +6,4 @@ export * from "./attempt";
 export * from "./leaderboard";
 export * from "./liveRoom";
 export * from "./dailyChallenge";
+export * from "./notification";

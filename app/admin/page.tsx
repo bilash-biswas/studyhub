@@ -11,6 +11,7 @@ import {
   TrendingUp,
   PlusCircle,
   Sparkles,
+  Bell,
 } from "lucide-react";
 import { getExams } from "@/lib/services/exam-service";
 import { getQuestionStats, seedSampleQuestions } from "@/lib/services/question-service";
@@ -224,6 +225,22 @@ export default function AdminDashboardPage() {
               </CardTitle>
               <CardDescription className="text-xs">
                 Manage syllabus subjects, descriptions, and sequence ordering.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+
+        <Link href="/admin/notifications" className="group">
+          <Card className="h-full hover:border-orange-400/60 dark:hover:border-orange-600/60 transition-all">
+            <CardHeader className="pb-3">
+              <div className="h-9 w-9 rounded-lg bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center mb-2">
+                <Bell className="h-5 w-5" />
+              </div>
+              <CardTitle className="text-base font-semibold group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                Push Notifications & Streak Targeting
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Send instant push alerts to mobile & web apps and target candidates by daily streak cohorts.
               </CardDescription>
             </CardHeader>
           </Card>

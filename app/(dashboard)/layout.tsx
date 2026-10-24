@@ -25,6 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/lib/context/language-context";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LanguageToggle } from "@/components/ui/language-toggle";
+import { NotificationBell } from "@/components/layout/notification-bell";
 
 export default function DashboardLayout({
   children,
@@ -133,6 +134,7 @@ export default function DashboardLayout({
             </span>
           </Link>
           <div className="flex items-center gap-1.5">
+            <NotificationBell />
             <LanguageToggle />
             <ThemeToggle />
           </div>
@@ -220,6 +222,7 @@ export default function DashboardLayout({
           </div>
 
           <div className="flex items-center gap-1.5">
+            <NotificationBell />
             <LanguageToggle />
             <ThemeToggle />
             <button

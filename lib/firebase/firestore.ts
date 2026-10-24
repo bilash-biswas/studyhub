@@ -14,6 +14,7 @@ export const COLLECTIONS = {
   DAILY_CHALLENGES: "dailyChallenges",
   LEADERBOARD_SCORES: "leaderboardScores",
   LIVE_ROOMS: "liveRooms",
+  NOTIFICATIONS: "notifications",
 } as const;
 
 // Typed Firestore document helpers
@@ -45,6 +46,9 @@ export const liveRoomsCol = () => collection(db, COLLECTIONS.LIVE_ROOMS);
 export const liveRoomDoc = (roomId: string) => doc(db, COLLECTIONS.LIVE_ROOMS, roomId);
 export const liveRoomPlayersCol = (roomId: string) => collection(db, COLLECTIONS.LIVE_ROOMS, roomId, "players");
 export const liveRoomPlayerDoc = (roomId: string, uid: string) => doc(db, COLLECTIONS.LIVE_ROOMS, roomId, "players", uid);
+
+export const notificationsCol = () => collection(db, COLLECTIONS.NOTIFICATIONS);
+export const notificationDoc = (id: string) => doc(db, COLLECTIONS.NOTIFICATIONS, id);
 
 // User Subcollections
 export const userBookmarksCol = (uid: string) => collection(db, COLLECTIONS.USERS, uid, "bookmarks");

@@ -12,6 +12,7 @@ import {
   FileCheck2,
   Users,
   BarChart,
+  Bell,
   ArrowLeft,
   Menu,
   X,
@@ -33,6 +34,7 @@ export default function AdminLayout({
   const navItems = [
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
     { label: "Question Bank", href: "/admin/questions", icon: HelpCircle },
+    { label: "Push Notifications", href: "/admin/notifications", icon: Bell },
     { label: "Exams", href: "/admin/exams", icon: FolderTree },
     { label: "Subjects", href: "/admin/subjects", icon: BookOpen },
     { label: "Mock Tests", href: "/admin/mock-tests", icon: FileCheck2 },

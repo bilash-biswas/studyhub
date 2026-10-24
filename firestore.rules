@@ -97,5 +97,11 @@ service cloud.firestore {
         allow write: if isOwner(playerId);
       }
     }
+
+    // 9. Push & In-App Notifications
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
   }
 }
