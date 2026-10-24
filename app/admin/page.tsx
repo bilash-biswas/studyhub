@@ -13,7 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { getExams } from "@/lib/services/exam-service";
-import { getQuestions, seedSampleQuestions } from "@/lib/services/question-service";
+import { getQuestionStats, seedSampleQuestions } from "@/lib/services/question-service";
 import { seedDefaultCatalogs } from "@/lib/services/seed-catalogs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -23,17 +23,20 @@ export default function AdminDashboardPage() {
   const { user } = useAuth();
   const [examCount, setExamCount] = useState(0);
   const [questionCount, setQuestionCount] = useState(0);
+  const [verifiedCount, setVerifiedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [seedMessage, setSeedMessage] = useState<string | null>(null);
   const [isSeeding, setIsSeeding] = useState(false);
 
   const fetchStats = async () => {
     setLoading(true);
-    const exams = await getExams(true);
+    const [exams, qStats] = await Promise.all([
+      getExams(true),
+      getQuestionStats(),
+    ]);
     setExamCount(exams.length);
-
-    const questionsRes = await getQuestions({}, 50);
-    setQuestionCount(questionsRes.questions.length);
+    setQuestionCount(qStats.totalCount);
+    setVerifiedCount(qStats.verifiedCount);
     setLoading(false);
   };
 
@@ -104,8 +107,13 @@ export default function AdminDashboardPage() {
             <div>
               <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Questions</p>
               <h3 className="text-2xl font-bold mt-1 text-slate-900 dark:text-slate-100">
-                {loading ? "..." : questionCount}
+                {loading ? "..." : questionCount.toLocaleString()}
               </h3>
+              {!loading && verifiedCount > 0 && (
+                <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  {verifiedCount.toLocaleString()} Admin Verified
+                </p>
+              )}
             </div>
             <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
               <HelpCircle className="h-5 w-5" />

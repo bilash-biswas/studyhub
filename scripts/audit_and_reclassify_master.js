@@ -548,12 +548,14 @@ rawData.forEach((item, index) => {
     }
   }
 
-  const tags = [
+  const batchHyphen = batchStr.toLowerCase().replace(/\s+/g, '-');
+  const tags = Array.from(new Set([
+    batchHyphen,
     `${batchClean}-bcs`,
     'bcs',
     'bcs-preliminary',
     newSubjectId.replace('sub_bcs_', '')
-  ];
+  ]));
 
   cleanQuestions.push({
     id: docId,

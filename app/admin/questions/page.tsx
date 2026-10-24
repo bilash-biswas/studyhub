@@ -21,7 +21,7 @@ import {
   seedSampleQuestions,
 } from "@/lib/services/question-service";
 import { getExams } from "@/lib/services/exam-service";
-import { getSubjectsByExamId } from "@/lib/services/subject-service";
+import { getSubjects, getSubjectsByExamId } from "@/lib/services/subject-service";
 import { useAuth } from "@/hooks/useAuth";
 import { QuestionCard } from "@/components/admin/question-card";
 import { Button } from "@/components/ui/button";
@@ -60,7 +60,8 @@ export default function AdminQuestionsPage() {
   useEffect(() => {
     async function loadSubjects() {
       if (!selectedExamId) {
-        setSubjects([]);
+        const allSubs = await getSubjects(true);
+        setSubjects(allSubs);
         setSelectedSubjectId("");
         return;
       }
@@ -231,7 +232,7 @@ export default function AdminQuestionsPage() {
           {/* Subject Filter */}
           <select
             value={selectedSubjectId}
-            disabled={!selectedExamId || subjects.length === 0}
+            disabled={subjects.length === 0}
             onChange={(e) => setSelectedSubjectId(e.target.value)}
             className="h-9 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
           >

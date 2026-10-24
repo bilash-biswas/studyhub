@@ -150,6 +150,48 @@ async function runIngest() {
   }
 
   console.log(`[Ingest] Ingestion complete! Successfully uploaded ${committedCount} verified questions to Firestore.`);
+
+  // Sync 41 BCS Mock Tests (mock_bcs_10th .. mock_bcs_50th) with the exact cleaned question IDs
+  const batchGroups = {};
+  for (const q of questions) {
+    const m = (q.source || '').match(/(\d+(?:st|nd|rd|th))\s+BCS/i);
+    if (m) {
+      const ord = m[1].toLowerCase();
+      if (!batchGroups[ord]) batchGroups[ord] = [];
+      batchGroups[ord].push(q.id);
+    }
+  }
+
+  const mockWrites = Object.entries(batchGroups).map(([ord, qIds]) => {
+    const mockId = `mock_bcs_${ord}`;
+    const docName = `projects/${PROJECT_ID}/databases/(default)/documents/mockTests/${mockId}`;
+    const duration = qIds.length >= 150 ? 120 : 60;
+    return {
+      update: {
+        name: docName,
+        fields: {
+          examId: { stringValue: 'exam_bcs' },
+          title: { stringValue: `${ord.toUpperCase().replace(/(\d+)(ST|ND|RD|TH)/, '$1$2')} BCS Preliminary Official Paper (${qIds.length} Questions)` },
+          description: { stringValue: `Official ${ord} BCS Preliminary archive paper with ${qIds.length} verified questions, KaTeX math, and negative marking (0.50 per wrong answer).` },
+          durationMinutes: { integerValue: String(duration) },
+          totalQuestions: { integerValue: String(qIds.length) },
+          questionIds: toFirestoreValue(qIds),
+          correctMark: { integerValue: '1' },
+          wrongMark: { doubleValue: 0.5 },
+          passPercentage: { integerValue: '50' },
+          isPublished: { booleanValue: true },
+          createdAt: { timestampValue: nowIso },
+          updatedAt: { timestampValue: nowIso }
+        }
+      }
+    };
+  });
+
+  if (mockWrites.length > 0) {
+    process.stdout.write(`  Syncing ${mockWrites.length} BCS Mock Exam sets... `);
+    await commitWrites(token, mockWrites);
+    console.log('OK!');
+  }
 }
 
 runIngest().catch(err => {

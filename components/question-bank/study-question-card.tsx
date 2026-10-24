@@ -237,7 +237,7 @@ export function StudyQuestionCard({
                     <strong className="font-bold text-emerald-800 dark:text-emerald-300">
                       আপনার উত্তর সঠিক! ({correctOptLetter}):
                     </strong>{" "}
-                    <span className="font-medium">{correctOpt?.text}</span>
+                    <MathText text={correctOpt?.text || ""} className="font-medium inline" />
                   </div>
                 </div>
               ) : (
@@ -248,7 +248,7 @@ export function StudyQuestionCard({
                       <strong className="font-bold text-rose-800 dark:text-rose-300">
                         আপনার উত্তর ({userOptLetter}):
                       </strong>{" "}
-                      <span>{userOpt?.text || "নির্বাচিত বিকল্প"}</span>
+                      <MathText text={userOpt?.text || "নির্বাচিত বিকল্প"} className="inline" />
                     </div>
                   </div>
                   <div className="p-2.5 rounded-lg border border-emerald-200 dark:border-emerald-900/80 bg-emerald-50/70 dark:bg-emerald-950/30 flex items-start gap-2 text-emerald-950 dark:text-emerald-200">
@@ -257,7 +257,7 @@ export function StudyQuestionCard({
                       <strong className="font-bold text-emerald-800 dark:text-emerald-300">
                         সঠিক উত্তর ({correctOptLetter}):
                       </strong>{" "}
-                      <span>{correctOpt?.text}</span>
+                      <MathText text={correctOpt?.text || ""} className="inline" />
                     </div>
                   </div>
                 </div>
@@ -269,7 +269,7 @@ export function StudyQuestionCard({
                   <strong className="font-bold text-emerald-800 dark:text-emerald-300">
                     সঠিক উত্তর ({correctOptLetter}):
                   </strong>{" "}
-                  <span>{correctOpt?.text}</span>
+                  <MathText text={correctOpt?.text || ""} className="inline" />
                 </div>
               </div>
             )}
@@ -419,7 +419,7 @@ export function StudyQuestionCard({
               key={tag}
               className="text-[10px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-md"
             >
-              #{tag}
+              #{tag.replace(/^(\d+(?:st|nd|rd|th))bcs-bcs$/, "$1-bcs")}
             </span>
           ))}
         </div>

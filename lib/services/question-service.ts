@@ -1,6 +1,7 @@
 import {
   getDocs,
   getDoc,
+  getCountFromServer,
   setDoc,
   updateDoc,
   deleteDoc,
@@ -62,7 +63,9 @@ export async function getQuestions(
     }
 
     if (filters.tag) {
-      constraints.push(where("tags", "array-contains", filters.tag.toLowerCase().trim()));
+      const rawTag = filters.tag.toLowerCase().trim();
+      const normalizedTag = rawTag.replace(/^(\d+(?:st|nd|rd|th))-bcs$/, "$1bcs-bcs");
+      constraints.push(where("tags", "array-contains", normalizedTag));
     }
 
     if (typeof filters.adminVerified === "boolean") {
@@ -108,7 +111,12 @@ export async function getQuestions(
           fallbackConstraints.push(where("status", "==", "published"));
         }
         if (filters.tag) {
-          fallbackConstraints.push(where("tags", "array-contains", filters.tag.toLowerCase().trim()));
+          const rawTag = filters.tag.toLowerCase().trim();
+          const normalizedTag = rawTag.replace(/^(\d+(?:st|nd|rd|th))-bcs$/, "$1bcs-bcs");
+          fallbackConstraints.push(where("tags", "array-contains", normalizedTag));
+        }
+        if (typeof filters.adminVerified === "boolean") {
+          fallbackConstraints.push(where("adminVerified", "==", filters.adminVerified));
         }
         fallbackConstraints.push(limit(pageSize * 3));
 
@@ -405,6 +413,57 @@ export async function updateQuestionSubject(
     updatedBy,
     updatedAt: serverTimestamp(),
   });
+}
+
+/**
+ * Fetches exact question counts using Firestore server aggregation (1 index read).
+ */
+export async function getQuestionStats(): Promise<{
+  totalCount: number;
+  verifiedCount: number;
+}> {
+  try {
+    const [totalSnap, verifiedSnap] = await Promise.all([
+      getCountFromServer(query(questionsCol(), where("status", "==", "published"))),
+      getCountFromServer(
+        query(
+          questionsCol(),
+          where("status", "==", "published"),
+          where("adminVerified", "==", true)
+        )
+      ),
+    ]);
+    return {
+      totalCount: totalSnap.data().count,
+      verifiedCount: verifiedSnap.data().count,
+    };
+  } catch (error) {
+    console.error("Error fetching question stats:", error);
+    return { totalCount: 0, verifiedCount: 0 };
+  }
+}
+
+export async function getSubjectQuestionCounts(
+  subjectIds: string[]
+): Promise<Record<string, number>> {
+  const counts: Record<string, number> = {};
+  try {
+    await Promise.all(
+      subjectIds.map(async (subId) => {
+        const snap = await getCountFromServer(
+          query(
+            questionsCol(),
+            where("status", "==", "published"),
+            where("subjectId", "==", subId)
+          )
+        );
+        counts[subId] = snap.data().count;
+      })
+    );
+  } catch (error) {
+    console.error("Error fetching subject question counts:", error);
+  }
+  return counts;
 }
 
 export async function seedSampleQuestions(adminUserId: string = "system"): Promise<number> {

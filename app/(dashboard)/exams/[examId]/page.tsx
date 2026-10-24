@@ -43,9 +43,14 @@ export default function TimedExamPage() {
           qList = await getQuestionsByIds(test.questionIds);
         }
 
-        // If question pool is empty, fetch published questions for this exam
+        // If question pool is empty, fetch published questions for this exam (and batch tag if BCS batch test)
         if (qList.length === 0) {
-          let res = await getQuestions({ examId: test.examId, status: "published" }, test.totalQuestions);
+          const batchMatch = test.id.match(/^mock_bcs_(\d+(?:st|nd|rd|th))$/i);
+          const batchTag = batchMatch ? `${batchMatch[1].toLowerCase()}-bcs` : undefined;
+          let res = await getQuestions(
+            { examId: test.examId, tag: batchTag, status: "published" },
+            Math.max(test.totalQuestions, 100)
+          );
           if (res.questions.length === 0) {
             // Seed questions if empty
             await seedSampleQuestions(user?.uid || "system");
