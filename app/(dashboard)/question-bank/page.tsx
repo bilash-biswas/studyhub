@@ -87,6 +87,7 @@ export default function QuestionBankStudyPage() {
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>("");
   const [selectedBatchTag, setSelectedBatchTag] = useState<string>("");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
+  const [selectedVerified, setSelectedVerified] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Default state: Answers are hidden until clicked on each card, with a master switch
@@ -156,6 +157,11 @@ export default function QuestionBankStudyPage() {
         if (selectedDifficulty && selectedDifficulty !== "all") {
           filters.difficulty = selectedDifficulty as any;
         }
+        if (selectedVerified === "verified") {
+          filters.adminVerified = true;
+        } else if (selectedVerified === "unverified") {
+          filters.adminVerified = false;
+        }
 
         const res = await getQuestions(filters, pageSize, lastDoc);
         setQuestions(res.questions);
@@ -174,7 +180,7 @@ export default function QuestionBankStudyPage() {
         setLoading(false);
       }
     },
-    [selectedExamId, selectedSubjectId, selectedBatchTag, selectedDifficulty]
+    [selectedExamId, selectedSubjectId, selectedBatchTag, selectedDifficulty, selectedVerified]
   );
 
   // Trigger fetch when primary filters change
@@ -241,6 +247,7 @@ export default function QuestionBankStudyPage() {
     setSelectedSubjectId("");
     setSelectedBatchTag("");
     setSelectedDifficulty("all");
+    setSelectedVerified("all");
     setSearchQuery("");
   };
 
@@ -404,8 +411,18 @@ export default function QuestionBankStudyPage() {
             <option value="hard">কঠিন (Hard)</option>
           </select>
 
+          {/* Admin Verified Filter */}
+          <select
+            value={selectedVerified}
+            onChange={(e) => setSelectedVerified(e.target.value)}
+            className="px-3 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          >
+            <option value="all">সকল প্রশ্ন (All Questions)</option>
+            <option value="verified">ভেরিফাইড প্রশ্ন (Admin Verified)</option>
+          </select>
+
           {/* Reset Filters */}
-          {(selectedSubjectId || selectedBatchTag || selectedDifficulty !== "all" || searchQuery) && (
+          {(selectedSubjectId || selectedBatchTag || selectedDifficulty !== "all" || selectedVerified !== "all" || searchQuery) && (
             <Button
               type="button"
               variant="outline"

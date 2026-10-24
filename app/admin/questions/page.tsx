@@ -16,6 +16,8 @@ import {
   getQuestions,
   deleteQuestion,
   updateQuestionStatus,
+  updateQuestionAdminVerified,
+  updateQuestionSubject,
   seedSampleQuestions,
 } from "@/lib/services/question-service";
 import { getExams } from "@/lib/services/exam-service";
@@ -40,6 +42,7 @@ export default function AdminQuestionsPage() {
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>("");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("published");
+  const [selectedVerified, setSelectedVerified] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isSeeding, setIsSeeding] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
@@ -82,6 +85,8 @@ export default function AdminQuestionsPage() {
       if (selectedSubjectId) filters.subjectId = selectedSubjectId;
       if (selectedDifficulty) filters.difficulty = selectedDifficulty as QuestionDifficulty;
       if (selectedStatus) filters.status = selectedStatus as QuestionStatus;
+      if (selectedVerified === "true") filters.adminVerified = true;
+      if (selectedVerified === "false") filters.adminVerified = false;
 
       const currentLastDoc = isReset ? null : lastDoc;
       const res = await getQuestions(filters, 20, currentLastDoc);
@@ -97,12 +102,28 @@ export default function AdminQuestionsPage() {
       setLoading(false);
       setLoadingMore(false);
     },
-    [selectedExamId, selectedSubjectId, selectedDifficulty, selectedStatus, lastDoc]
+    [selectedExamId, selectedSubjectId, selectedDifficulty, selectedStatus, selectedVerified, lastDoc]
   );
 
   useEffect(() => {
     fetchQuestionsList(true);
-  }, [selectedExamId, selectedSubjectId, selectedDifficulty, selectedStatus]);
+  }, [selectedExamId, selectedSubjectId, selectedDifficulty, selectedStatus, selectedVerified]);
+
+  // Handle Verification Toggle
+  const handleVerifyToggle = async (id: string, verified: boolean) => {
+    await updateQuestionAdminVerified(id, verified, user?.uid || "admin");
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === id ? { ...q, adminVerified: verified } : q))
+    );
+  };
+
+  // Handle Subject Change
+  const handleSubjectChange = async (id: string, newSubjectId: string) => {
+    await updateQuestionSubject(id, newSubjectId, user?.uid || "admin");
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === id ? { ...q, subjectId: newSubjectId } : q))
+    );
+  };
 
   // Handle Status Change
   const handleStatusChange = async (id: string, status: "draft" | "published" | "archived") => {
@@ -192,7 +213,7 @@ export default function AdminQuestionsPage() {
           Filter Questions
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-xs">
           {/* Exam Filter */}
           <select
             value={selectedExamId}
@@ -243,6 +264,17 @@ export default function AdminQuestionsPage() {
             <option value="published">Published</option>
             <option value="draft">Draft</option>
             <option value="archived">Archived</option>
+          </select>
+
+          {/* Verification Filter */}
+          <select
+            value={selectedVerified}
+            onChange={(e) => setSelectedVerified(e.target.value)}
+            className="h-9 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="">All Verification (সব)</option>
+            <option value="true">ভেরিফাইড (Verified)</option>
+            <option value="false">রিভিউ প্রয়োজন (Unverified)</option>
           </select>
         </div>
 
@@ -316,8 +348,11 @@ export default function AdminQuestionsPage() {
                 question={q}
                 examName={examObj?.name}
                 subjectName={subjectObj?.name}
+                allSubjects={subjects}
                 onStatusChange={handleStatusChange}
                 onDelete={handleDelete}
+                onVerifyToggle={handleVerifyToggle}
+                onSubjectChange={handleSubjectChange}
               />
             );
           })}

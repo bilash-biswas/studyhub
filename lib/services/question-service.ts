@@ -24,6 +24,7 @@ export interface QuestionFilters {
   difficulty?: QuestionDifficulty;
   status?: QuestionStatus;
   tag?: string;
+  adminVerified?: boolean;
 }
 
 export interface PaginatedQuestionsResult {
@@ -62,6 +63,10 @@ export async function getQuestions(
 
     if (filters.tag) {
       constraints.push(where("tags", "array-contains", filters.tag.toLowerCase().trim()));
+    }
+
+    if (typeof filters.adminVerified === "boolean") {
+      constraints.push(where("adminVerified", "==", filters.adminVerified));
     }
 
     constraints.push(orderBy("createdAt", "desc"));
@@ -376,6 +381,32 @@ export const SAMPLE_QUESTIONS: Omit<Question, "createdAt" | "updatedAt">[] = [
 /**
  * Idempotently seeds initial sample questions if question collection is empty
  */
+export async function updateQuestionAdminVerified(
+  questionId: string,
+  adminVerified: boolean,
+  updatedBy: string = "admin"
+): Promise<void> {
+  const ref = questionDoc(questionId);
+  await updateDoc(ref, {
+    adminVerified,
+    updatedBy,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function updateQuestionSubject(
+  questionId: string,
+  subjectId: string,
+  updatedBy: string = "admin"
+): Promise<void> {
+  const ref = questionDoc(questionId);
+  await updateDoc(ref, {
+    subjectId,
+    updatedBy,
+    updatedAt: serverTimestamp(),
+  });
+}
+
 export async function seedSampleQuestions(adminUserId: string = "system"): Promise<number> {
   try {
     const checkSnapshot = await getDocs(query(questionsCol(), limit(1)));

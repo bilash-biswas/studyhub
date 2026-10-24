@@ -15,6 +15,7 @@ import {
   Check,
   Trash2,
   Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 
 export interface StudyQuestionCardProps {
@@ -164,6 +165,17 @@ export function StudyQuestionCard({
                 ? "মধ্যম"
                 : "কঠিন"}
             </span>
+
+            {/* Admin Verified Badge */}
+            {question.adminVerified && (
+              <span
+                title="বিসিএস বিশেষজ্ঞ প্যানেল দ্বারা পরীক্ষিত ও নির্ভুল"
+                className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 shadow-2xs"
+              >
+                <ShieldCheck className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                <span>ভেরিফাইড</span>
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-1.5">

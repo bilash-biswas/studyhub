@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Check, Edit, Trash2, Eye, EyeOff, Tag, BookOpen, AlertCircle } from "lucide-react";
-import { Question } from "@/types";
+import { Check, Edit, Trash2, Eye, EyeOff, Tag, BookOpen, AlertCircle, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Question, Subject } from "@/types";
 import { MathText } from "@/components/ui/math-text";
 import { Button } from "@/components/ui/button";
 
@@ -11,20 +11,28 @@ interface QuestionCardProps {
   question: Question;
   examName?: string;
   subjectName?: string;
+  allSubjects?: Subject[];
   onStatusChange?: (id: string, status: "draft" | "published" | "archived") => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
+  onVerifyToggle?: (id: string, verified: boolean) => Promise<void>;
+  onSubjectChange?: (id: string, newSubjectId: string) => Promise<void>;
 }
 
 export function QuestionCard({
   question,
   examName,
   subjectName,
+  allSubjects,
   onStatusChange,
   onDelete,
+  onVerifyToggle,
+  onSubjectChange,
 }: QuestionCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [isStatusChanging, setIsStatusChanging] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isChangingSubject, setIsChangingSubject] = useState(false);
 
   const difficultyColors = {
     easy: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800",
@@ -54,11 +62,36 @@ export function QuestionCard({
     setShowConfirmDelete(false);
   };
 
+  const handleToggleVerify = async () => {
+    if (!onVerifyToggle) return;
+    setIsVerifying(true);
+    await onVerifyToggle(question.id, !question.adminVerified);
+    setIsVerifying(false);
+  };
+
+  const handleSubjectChange = async (newSubId: string) => {
+    if (!onSubjectChange || newSubId === question.subjectId) return;
+    setIsChangingSubject(true);
+    await onSubjectChange(question.id, newSubId);
+    setIsChangingSubject(false);
+  };
+
   return (
     <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs space-y-4">
       {/* Header Badges */}
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
         <div className="flex flex-wrap items-center gap-1.5">
+          {question.adminVerified ? (
+            <span className="px-2 py-0.5 rounded-md font-semibold border bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+              <ShieldCheck className="h-3 w-3" />
+              ভেরিফাইড
+            </span>
+          ) : (
+            <span className="px-2 py-0.5 rounded-md font-medium border bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-200 dark:border-amber-800 flex items-center gap-1">
+              <ShieldAlert className="h-3 w-3" />
+              রিভিউ প্রয়োজন
+            </span>
+          )}
           {examName && (
             <span className="font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
               {examName}
@@ -161,10 +194,47 @@ export function QuestionCard({
       )}
 
       {/* Action Footer */}
-      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-        <span className="text-[11px] text-slate-400">ID: {question.id}</span>
+      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-3">
+          <span className="text-[11px] text-slate-400">ID: {question.id}</span>
+          {allSubjects && allSubjects.length > 0 && onSubjectChange && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] text-slate-500 hidden sm:inline font-medium">বিষয় পরিবর্তন:</span>
+              <select
+                value={question.subjectId}
+                onChange={(e) => handleSubjectChange(e.target.value)}
+                disabled={isChangingSubject}
+                className="h-7 text-[11px] rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+                {allSubjects.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
 
         <div className="flex items-center gap-2">
+          {/* 1-Click Verify Toggle */}
+          {onVerifyToggle && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleVerify}
+              isLoading={isVerifying}
+              className={`text-xs gap-1.5 ${
+                question.adminVerified
+                  ? "text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
+                  : "text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800"
+              }`}
+            >
+              <ShieldCheck className="h-3.5 w-3.5" />
+              {question.adminVerified ? "আন-ভেরিফাই" : "ভেরিফাই করুন"}
+            </Button>
+          )}
+
           {/* Toggle Publish */}
           {onStatusChange && (
             <Button

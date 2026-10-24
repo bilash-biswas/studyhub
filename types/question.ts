@@ -20,6 +20,7 @@ export interface Question {
   tags: string[]; // flexible tags e.g. ["algebra", "equations", "45th-bcs"]
   imageUrl?: string | null;
   status: QuestionStatus;
+  adminVerified?: boolean; // Quality audited & verified by admin panel
   createdBy: string;
   updatedBy: string;
   createdAt: any;
