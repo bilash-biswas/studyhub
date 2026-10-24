@@ -107,9 +107,9 @@ async function runIngest() {
         source: { stringValue: q.source || 'BCS Preliminary' },
         tags: toFirestoreValue(q.tags || []),
         status: { stringValue: q.status || 'published' },
-        adminVerified: { booleanValue: true }, // Explicit Admin Verified boolean
-        createdBy: { stringValue: 'admin_verified_audit' },
-        updatedBy: { stringValue: 'admin_verified_audit' },
+        adminVerified: { booleanValue: Boolean(q.adminVerified === true ? false : false) }, // Default false so Admin manually verifies in Admin Panel
+        createdBy: { stringValue: 'bulk_import' },
+        updatedBy: { stringValue: 'bulk_import' },
         createdAt: { timestampValue: nowIso },
         updatedAt: { timestampValue: nowIso }
       };

@@ -14,11 +14,13 @@ import {
   AlertCircle,
   Save,
   ArrowLeft,
+  ShieldCheck,
+  ShieldAlert,
 } from "lucide-react";
 import { Question, Exam, Subject } from "@/types";
 import { questionSchema, QuestionFormData } from "@/lib/validations/question";
 import { getExams } from "@/lib/services/exam-service";
-import { getSubjectsByExamId } from "@/lib/services/subject-service";
+import { getSubjects, getSubjectsByExamId } from "@/lib/services/subject-service";
 import { createQuestion, updateQuestion } from "@/lib/services/question-service";
 import { uploadQuestionImage } from "@/lib/firebase/storage";
 import { useAuth } from "@/hooks/useAuth";
@@ -75,6 +77,7 @@ export function QuestionForm({ initialQuestion, isEdit = false }: QuestionFormPr
       tags: initialQuestion?.tags || ["general"],
       imageUrl: initialQuestion?.imageUrl || null,
       status: initialQuestion?.status || "published",
+      adminVerified: initialQuestion?.adminVerified ?? false,
     },
   });
 
@@ -88,6 +91,7 @@ export function QuestionForm({ initialQuestion, isEdit = false }: QuestionFormPr
   const watchOptions = watch("options");
   const watchExplanation = watch("explanation");
   const watchCorrectOptionId = watch("correctOptionId");
+  const watchAdminVerified = watch("adminVerified");
 
   // Load active exams
   useEffect(() => {
@@ -100,15 +104,21 @@ export function QuestionForm({ initialQuestion, isEdit = false }: QuestionFormPr
     fetchCatalogs();
   }, []);
 
-  // Filter subjects when examId changes
+  // Filter subjects when examId changes (fallback to all subjects so edit mode is never empty)
   useEffect(() => {
     async function fetchSubjects() {
       if (!selectedExamId) {
-        setSubjects([]);
+        const allSubs = await getSubjects(true);
+        setSubjects(allSubs);
         return;
       }
       const subList = await getSubjectsByExamId(selectedExamId, true);
-      setSubjects(subList);
+      if (subList.length > 0) {
+        setSubjects(subList);
+      } else {
+        const allSubs = await getSubjects(true);
+        setSubjects(allSubs);
+      }
     }
     fetchSubjects();
   }, [selectedExamId]);
@@ -163,6 +173,7 @@ export function QuestionForm({ initialQuestion, isEdit = false }: QuestionFormPr
           source: data.source,
           tags: data.tags,
           status: data.status,
+          adminVerified: Boolean(data.adminVerified),
           imageUrl: finalImageUrl,
           updatedBy: user?.uid || "admin",
         });
@@ -179,6 +190,7 @@ export function QuestionForm({ initialQuestion, isEdit = false }: QuestionFormPr
           source: data.source,
           tags: data.tags,
           status: data.status,
+          adminVerified: Boolean(data.adminVerified),
           imageUrl: finalImageUrl,
           createdBy: user?.uid || "admin",
           updatedBy: user?.uid || "admin",
@@ -516,11 +528,50 @@ export function QuestionForm({ initialQuestion, isEdit = false }: QuestionFormPr
                     )}
                   </div>
                 </div>
+
+                {/* Admin Manual Verification Status Toggle */}
+                <div
+                  className={`p-3.5 rounded-xl border flex flex-wrap items-center justify-between gap-3 transition-colors ${
+                    watchAdminVerified
+                      ? "bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800"
+                      : "bg-amber-50/70 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    {watchAdminVerified ? (
+                      <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    ) : (
+                      <ShieldAlert className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
+                    )}
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        {watchAdminVerified
+                          ? "অ্যাডমিন ভেরিফাইড (Manually Verified)"
+                          : "রিভিউ প্রয়োজন (Unverified / Needs Admin Review)"}
+                      </p>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                        প্রশ্ন, অপশন, সঠিক উত্তর ও বিষয় সঠিক থাকলে ভেরিফাইড হিসেবে চিহ্নিত করুন।
+                      </p>
+                    </div>
+                  </div>
+
+                  <label className="inline-flex items-center gap-2 text-xs font-bold cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(watchAdminVerified)}
+                      onChange={(e) =>
+                        setValue("adminVerified", e.target.checked, { shouldValidate: true })
+                      }
+                      className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                    />
+                    <span>ভেরিফাইড (Verified)</span>
+                  </label>
+                </div>
               </CardContent>
             </Card>
 
             {/* Action Bar */}
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
               <Button
                 type="button"
                 variant="ghost"
@@ -530,12 +581,25 @@ export function QuestionForm({ initialQuestion, isEdit = false }: QuestionFormPr
               </Button>
               <Button
                 type="submit"
-                variant="primary"
+                variant="outline"
                 isLoading={isSubmitting}
                 className="gap-2"
               >
                 <Save className="h-4 w-4" />
                 {isEdit ? "Update Question" : "Save Question"}
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                isLoading={isSubmitting}
+                onClick={() => {
+                  setValue("adminVerified", true, { shouldValidate: true });
+                  handleSubmit(onSubmit)();
+                }}
+                className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                সেভ ও ভেরিফাই করুন (Save & Verify)
               </Button>
             </div>
           </form>

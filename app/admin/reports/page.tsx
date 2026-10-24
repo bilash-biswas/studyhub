@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  BarChart,
   ShieldCheck,
+  ShieldAlert,
   HelpCircle,
   BookOpen,
   FileCheck2,
@@ -17,7 +17,7 @@ import { getExams } from "@/lib/services/exam-service";
 import { getSubjects } from "@/lib/services/subject-service";
 import {
   getQuestionStats,
-  getSubjectQuestionCounts,
+  getSubjectVerificationStats,
 } from "@/lib/services/question-service";
 import { getMockTests } from "@/lib/services/mock-test-service";
 import { getUsers } from "@/lib/services/user-service";
@@ -27,9 +27,12 @@ export default function AdminReportsPage() {
   const [loading, setLoading] = useState(true);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [verifiedQuestions, setVerifiedQuestions] = useState(0);
+  const [unverifiedQuestions, setUnverifiedQuestions] = useState(0);
   const [exams, setExams] = useState<Exam[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [subjectCounts, setSubjectCounts] = useState<Record<string, number>>({});
+  const [subjectStats, setSubjectStats] = useState<
+    Record<string, { total: number; verified: number; unverified: number }>
+  >({});
   const [mockTestCount, setMockTestCount] = useState(0);
   const [userCount, setUserCount] = useState(0);
 
@@ -46,14 +49,15 @@ export default function AdminReportsPage() {
 
       setTotalQuestions(qStats.totalCount);
       setVerifiedQuestions(qStats.verifiedCount);
+      setUnverifiedQuestions(qStats.unverifiedCount);
       setExams(examList);
       setSubjects(subList);
       setMockTestCount(mockList.length);
       setUserCount(userList.length);
 
       const subIds = subList.map((s) => s.id);
-      const counts = await getSubjectQuestionCounts(subIds);
-      setSubjectCounts(counts);
+      const stats = await getSubjectVerificationStats(subIds);
+      setSubjectStats(stats);
     } catch (err) {
       console.error("Failed to load admin reports:", err);
     } finally {
@@ -72,7 +76,7 @@ export default function AdminReportsPage() {
 
   const bcsSubjects = subjects
     .filter((s) => s.examId === "exam_bcs")
-    .sort((a, b) => (subjectCounts[b.id] || 0) - (subjectCounts[a.id] || 0));
+    .sort((a, b) => (subjectStats[b.id]?.total || 0) - (subjectStats[a.id]?.total || 0));
 
   return (
     <div className="space-y-6">
@@ -80,10 +84,10 @@ export default function AdminReportsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            System & Syllabus Reports (সিস্টেম রিপোর্ট)
+            System & Syllabus Reports (সিস্টেম রিপোর্ট ও ভেরিফিকেশন স্ট্যাটাস)
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Live Firestore inventory of verified questions, syllabus coverage, mock exams, and registered candidates.
+            Live Firestore inventory of manually verified questions, pending review queue, and syllabus coverage.
           </p>
         </div>
 
@@ -115,7 +119,7 @@ export default function AdminReportsPage() {
 
         <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-slate-500">Admin Verified (ভেরিফাইড)</p>
+            <p className="text-xs font-medium text-slate-500">Manually Verified (ভেরিফাইড)</p>
             <h3 className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
               {loading ? "..." : `${verifiedQuestions.toLocaleString()} (${verificationRate}%)`}
             </h3>
@@ -125,23 +129,26 @@ export default function AdminReportsPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center justify-between">
+        <Link
+          href="/admin/questions?verified=false"
+          className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-600 p-5 shadow-xs flex items-center justify-between transition-colors"
+        >
           <div>
-            <p className="text-xs font-medium text-slate-500">Published Mock Exams</p>
-            <h3 className="text-2xl font-bold mt-1 text-sky-600 dark:text-sky-400">
-              {loading ? "..." : mockTestCount}
+            <p className="text-xs font-medium text-slate-500">Pending Review (রিভিউ প্রয়োজন)</p>
+            <h3 className="text-2xl font-bold mt-1 text-amber-600 dark:text-amber-400">
+              {loading ? "..." : unverifiedQuestions.toLocaleString()}
             </h3>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center">
-            <FileCheck2 className="h-5 w-5" />
+          <div className="h-10 w-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+            <ShieldAlert className="h-5 w-5" />
           </div>
-        </div>
+        </Link>
 
         <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-slate-500">Registered Candidates</p>
+            <p className="text-xs font-medium text-slate-500">Candidates / Mock Tests</p>
             <h3 className="text-2xl font-bold mt-1 text-purple-600 dark:text-purple-400">
-              {loading ? "..." : userCount}
+              {loading ? "..." : `${userCount} / ${mockTestCount}`}
             </h3>
           </div>
           <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center">
@@ -150,20 +157,20 @@ export default function AdminReportsPage() {
         </div>
       </div>
 
-      {/* BCS Syllabus Subject Distribution */}
+      {/* BCS Syllabus Subject Verification Breakdown */}
       <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
-              BCS Preliminary Syllabus Distribution (বিষয়ভিত্তিক প্রশ্ন সংখ্যা)
+              BCS Preliminary Syllabus & Verification Breakdown (বিষয়ভিত্তিক ভেরিফিকেশন রিপোর্ট)
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Exact Firestore question counts across all 10 BPSC preliminary subjects.
+              Click &ldquo;Review Unverified&rdquo; on any subject to jump straight into manual verification for that subject.
             </p>
           </div>
           <Link href="/admin/questions">
             <Button variant="ghost" size="sm" className="text-xs gap-1">
-              Manage Questions
+              Open Verification Workbench
               <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </Link>
@@ -171,40 +178,53 @@ export default function AdminReportsPage() {
 
         {loading ? (
           <div className="p-8 text-center text-xs text-slate-500">
-            Computing live subject counts from Firestore...
+            Computing live subject verification stats from Firestore...
           </div>
         ) : (
           <div className="space-y-3">
             {bcsSubjects.map((sub) => {
-              const count = subjectCounts[sub.id] || 0;
-              const pct =
-                totalQuestions > 0
-                  ? Math.round((count / totalQuestions) * 100)
-                  : 0;
+              const s = subjectStats[sub.id] || { total: 0, verified: 0, unverified: 0 };
+              const subVerifyPct =
+                s.total > 0 ? Math.round((s.verified / s.total) * 100) : 0;
 
               return (
                 <div
                   key={sub.id}
-                  className="p-3.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 space-y-2"
+                  className="p-3.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 space-y-2.5"
                 >
-                  <div className="flex items-center justify-between text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                     <div className="flex items-center gap-2">
                       <BookOpen className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
                       <span className="font-semibold text-slate-900 dark:text-slate-100">
                         {sub.name}
                       </span>
                       <span className="text-[11px] font-mono text-slate-400">
-                        ({sub.id})
+                        ({s.total.toLocaleString()} total)
                       </span>
                     </div>
-                    <div className="font-bold text-slate-800 dark:text-slate-200">
-                      {count.toLocaleString()} questions ({pct}%)
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
+                        ভেরিফাইড: {s.verified.toLocaleString()} ({subVerifyPct}%)
+                      </span>
+                      <span className="text-amber-700 dark:text-amber-400 font-semibold">
+                        রিভিউ বাকি: {s.unverified.toLocaleString()}
+                      </span>
+                      <Link
+                        href={`/admin/questions?subjectId=${sub.id}&verified=${
+                          s.unverified > 0 ? "false" : ""
+                        }`}
+                        className="px-2.5 py-1 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-semibold hover:bg-indigo-100 transition-colors"
+                      >
+                        {s.unverified > 0 ? "রিভিউ করুন →" : "দেখুন →"}
+                      </Link>
                     </div>
                   </div>
+
                   <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-[#4F46E5] dark:bg-[#818CF8] rounded-full transition-all duration-500"
-                      style={{ width: `${Math.max(2, pct * 3)}%` }}
+                      className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                      style={{ width: `${subVerifyPct}%` }}
                     />
                   </div>
                 </div>

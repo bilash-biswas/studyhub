@@ -5,6 +5,7 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  writeBatch,
   query,
   where,
   orderBy,
@@ -16,7 +17,7 @@ import {
   QueryConstraint,
   documentId,
 } from "firebase/firestore";
-import { questionsCol, questionDoc } from "@/lib/firebase/firestore";
+import { db, questionsCol, questionDoc } from "@/lib/firebase/firestore";
 import { Question, QuestionDifficulty, QuestionStatus } from "@/types";
 
 export interface QuestionFilters {
@@ -402,6 +403,86 @@ export async function updateQuestionAdminVerified(
   });
 }
 
+/**
+ * Bulk updates adminVerified status for an array of question IDs in chunks of 450.
+ */
+export async function bulkUpdateQuestionAdminVerified(
+  questionIds: string[],
+  adminVerified: boolean,
+  updatedBy: string = "admin"
+): Promise<number> {
+  if (!questionIds || questionIds.length === 0) return 0;
+  const uniqueIds = Array.from(new Set(questionIds));
+  let updated = 0;
+
+  for (let i = 0; i < uniqueIds.length; i += 450) {
+    const chunk = uniqueIds.slice(i, i + 450);
+    const batch = writeBatch(db);
+    const timestamp = serverTimestamp();
+
+    for (const id of chunk) {
+      batch.update(questionDoc(id), {
+        adminVerified,
+        updatedBy,
+        updatedAt: timestamp,
+      });
+    }
+
+    await batch.commit();
+    updated += chunk.length;
+  }
+
+  return updated;
+}
+
+/**
+ * Resets or sets adminVerified status across all questions in Firestore (or filtered by subject/batch)
+ * using chunked writeBatch commits, reporting progress via callback.
+ */
+export async function resetAllQuestionsVerification(
+  adminVerified: boolean,
+  updatedBy: string = "admin",
+  onProgress?: (done: number, total: number) => void,
+  filterSubjectId?: string
+): Promise<number> {
+  const constraints: QueryConstraint[] = [];
+  if (filterSubjectId) {
+    constraints.push(where("subjectId", "==", filterSubjectId));
+  }
+  const q = constraints.length > 0 ? query(questionsCol(), ...constraints) : query(questionsCol());
+  const snapshot = await getDocs(q);
+  const docs = snapshot.docs;
+  const total = docs.length;
+
+  if (total === 0) {
+    onProgress?.(0, 0);
+    return 0;
+  }
+
+  let done = 0;
+  onProgress?.(0, total);
+
+  for (let i = 0; i < docs.length; i += 450) {
+    const chunk = docs.slice(i, i + 450);
+    const batch = writeBatch(db);
+    const timestamp = serverTimestamp();
+
+    for (const d of chunk) {
+      batch.update(d.ref, {
+        adminVerified,
+        updatedBy,
+        updatedAt: timestamp,
+      });
+    }
+
+    await batch.commit();
+    done += chunk.length;
+    onProgress?.(done, total);
+  }
+
+  return done;
+}
+
 export async function updateQuestionSubject(
   questionId: string,
   subjectId: string,
@@ -421,6 +502,7 @@ export async function updateQuestionSubject(
 export async function getQuestionStats(): Promise<{
   totalCount: number;
   verifiedCount: number;
+  unverifiedCount: number;
 }> {
   try {
     const [totalSnap, verifiedSnap] = await Promise.all([
@@ -433,13 +515,16 @@ export async function getQuestionStats(): Promise<{
         )
       ),
     ]);
+    const totalCount = totalSnap.data().count;
+    const verifiedCount = verifiedSnap.data().count;
     return {
-      totalCount: totalSnap.data().count,
-      verifiedCount: verifiedSnap.data().count,
+      totalCount,
+      verifiedCount,
+      unverifiedCount: Math.max(0, totalCount - verifiedCount),
     };
   } catch (error) {
     console.error("Error fetching question stats:", error);
-    return { totalCount: 0, verifiedCount: 0 };
+    return { totalCount: 0, verifiedCount: 0, unverifiedCount: 0 };
   }
 }
 
@@ -464,6 +549,45 @@ export async function getSubjectQuestionCounts(
     console.error("Error fetching subject question counts:", error);
   }
   return counts;
+}
+
+export async function getSubjectVerificationStats(
+  subjectIds: string[]
+): Promise<Record<string, { total: number; verified: number; unverified: number }>> {
+  const stats: Record<string, { total: number; verified: number; unverified: number }> = {};
+  try {
+    await Promise.all(
+      subjectIds.map(async (subId) => {
+        const [totalSnap, verifiedSnap] = await Promise.all([
+          getCountFromServer(
+            query(
+              questionsCol(),
+              where("status", "==", "published"),
+              where("subjectId", "==", subId)
+            )
+          ),
+          getCountFromServer(
+            query(
+              questionsCol(),
+              where("status", "==", "published"),
+              where("subjectId", "==", subId),
+              where("adminVerified", "==", true)
+            )
+          ),
+        ]);
+        const total = totalSnap.data().count;
+        const verified = verifiedSnap.data().count;
+        stats[subId] = {
+          total,
+          verified,
+          unverified: Math.max(0, total - verified),
+        };
+      })
+    );
+  } catch (error) {
+    console.error("Error fetching subject verification stats:", error);
+  }
+  return stats;
 }
 
 export async function seedSampleQuestions(adminUserId: string = "system"): Promise<number> {

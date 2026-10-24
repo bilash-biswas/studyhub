@@ -24,6 +24,7 @@ export default function AdminDashboardPage() {
   const [examCount, setExamCount] = useState(0);
   const [questionCount, setQuestionCount] = useState(0);
   const [verifiedCount, setVerifiedCount] = useState(0);
+  const [unverifiedCount, setUnverifiedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [seedMessage, setSeedMessage] = useState<string | null>(null);
   const [isSeeding, setIsSeeding] = useState(false);
@@ -37,6 +38,7 @@ export default function AdminDashboardPage() {
     setExamCount(exams.length);
     setQuestionCount(qStats.totalCount);
     setVerifiedCount(qStats.verifiedCount);
+    setUnverifiedCount(qStats.unverifiedCount);
     setLoading(false);
   };
 
@@ -109,10 +111,20 @@ export default function AdminDashboardPage() {
               <h3 className="text-2xl font-bold mt-1 text-slate-900 dark:text-slate-100">
                 {loading ? "..." : questionCount.toLocaleString()}
               </h3>
-              {!loading && verifiedCount > 0 && (
-                <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mt-0.5">
-                  {verifiedCount.toLocaleString()} Admin Verified
-                </p>
+              {!loading && (
+                <div className="mt-1 space-y-0.5">
+                  <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                    {verifiedCount.toLocaleString()} Admin Verified
+                  </p>
+                  {unverifiedCount > 0 && (
+                    <Link
+                      href="/admin/questions?verified=false"
+                      className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 hover:underline block"
+                    >
+                      {unverifiedCount.toLocaleString()} Pending Manual Review →
+                    </Link>
+                  )}
+                </div>
               )}
             </div>
             <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">

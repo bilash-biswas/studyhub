@@ -31,6 +31,7 @@ export const questionSchema = z
     tags: z.array(z.string().trim().toLowerCase()).min(1, "At least one tag is required"),
     imageUrl: z.string().url().optional().nullable(),
     status: z.enum(["draft", "published", "archived"]),
+    adminVerified: z.boolean().optional(),
   })
   .refine((data) => data.options.some((opt) => opt.id === data.correctOptionId), {
     message: "The correct option must match one of the provided options",
