@@ -130,53 +130,67 @@ export function StudyQuestionCard({
     <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all overflow-hidden flex flex-col justify-between">
       {/* 1. Card Header */}
       <div className="p-4 sm:p-5 pb-3">
-        <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3">
-          <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 mb-2.5">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
             {/* Question Index Badge */}
-            <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200">
               {t(`প্রশ্ন ${n(index + 1)}`, `Q. ${index + 1}`)}
             </span>
 
-            {/* Source / Batch Badge */}
+            {/* Source / Batch */}
             {sourceLabel && (
-              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60">
-                {sourceLabel}
-              </span>
+              <>
+                <span className="text-slate-300 dark:text-slate-700 text-[10px]">•</span>
+                <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                  {sourceLabel}
+                </span>
+              </>
             )}
 
-            {/* Subject Badge */}
+            {/* Subject */}
             {subjectName && (
-              <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                {subjectName}
-              </span>
+              <>
+                <span className="text-slate-300 dark:text-slate-700 text-[10px]">•</span>
+                <span className="text-slate-600 dark:text-slate-400">
+                  {subjectName}
+                </span>
+              </>
             )}
 
-            {/* Difficulty Badge */}
-            <span
-              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                question.difficulty === "easy"
-                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
-                  : question.difficulty === "medium"
-                  ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
-                  : "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300"
-              }`}
-            >
-              {question.difficulty === "easy"
-                ? t("সহজ", "Easy")
-                : question.difficulty === "medium"
-                ? t("মধ্যম", "Medium")
-                : t("কঠিন", "Hard")}
-            </span>
+            {/* Difficulty */}
+            {question.difficulty && (
+              <>
+                <span className="text-slate-300 dark:text-slate-700 text-[10px]">•</span>
+                <span
+                  className={`font-semibold ${
+                    question.difficulty === "easy"
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : question.difficulty === "hard"
+                      ? "text-rose-600 dark:text-rose-400"
+                      : "text-amber-600 dark:text-amber-400"
+                  }`}
+                >
+                  {question.difficulty === "easy"
+                    ? t("সহজ", "Easy")
+                    : question.difficulty === "medium"
+                    ? t("মধ্যম", "Medium")
+                    : t("কঠিন", "Hard")}
+                </span>
+              </>
+            )}
 
-            {/* Admin Verified Badge */}
+            {/* Admin Verified */}
             {question.adminVerified && (
-              <span
-                title={t("বিসিএস বিশেষজ্ঞ প্যানেল দ্বারা পরীক্ষিত ও নির্ভুল", "Verified by Admin Panel")}
-                className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 shadow-2xs"
-              >
-                <ShieldCheck className="h-3 w-3 text-blue-600 dark:text-blue-400" />
-                <span>{t("ভেরিফাইড", "Verified")}</span>
-              </span>
+              <>
+                <span className="text-slate-300 dark:text-slate-700 text-[10px]">•</span>
+                <span
+                  title={t("বিসিএস বিশেষজ্ঞ প্যানেল দ্বারা পরীক্ষিত ও নির্ভুল", "Verified by Admin Panel")}
+                  className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400"
+                >
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>{t("ভেরিফাইড", "Verified")}</span>
+                </span>
+              </>
             )}
           </div>
 
