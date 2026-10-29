@@ -22,6 +22,12 @@ function normalizeMathInput(raw: string): string {
   if (!raw) return "";
   let s = raw;
 
+  // 0. Auto-heal literal \n into real newlines
+  s = s.replace(/\\n/g, "\n");
+
+  // 0.1 Auto-heal double-escaped LaTeX commands (\\frac -> \frac, \\implies -> \implies, etc.)
+  s = s.replace(/\\\\([a-zA-Z]+)/g, (_, p1) => "\\" + p1);
+
   // 1. Repair false English macros (e.g. \sin{gular} -> singular, \sec{ond} -> second)
   s = s.replace(/\\(sin|sec|tan|cos|log)\{([a-z]{2,})\}/g, "$1$2");
   s = s.replace(/\$?\\frac\{a\}\{an-?\}\$?/gi, (m) => (m.includes("-") ? "a/an-" : "a/an"));
@@ -139,8 +145,12 @@ export function MathText({ text, className, as: Component = "span" }: MathTextPr
 
   if (!text) return null;
 
+  const combinedClassName = className
+    ? `whitespace-pre-line ${className}`
+    : "whitespace-pre-line";
+
   return (
-    <Component className={className}>
+    <Component className={combinedClassName}>
       {segments.map((segment, index) => {
         if (segment.type === "text") {
           return <span key={index}>{segment.content}</span>;

@@ -463,7 +463,7 @@ export function QuestionCard({
 
           {/* Explanation with Math Support */}
           {question.explanation && (
-            <div className="p-3 rounded-lg bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/60 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+            <div className="p-3 rounded-lg bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/60 text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
               <span className="font-semibold text-indigo-700 dark:text-indigo-400 block mb-1">
                 Explanation / সমাধান:
               </span>
