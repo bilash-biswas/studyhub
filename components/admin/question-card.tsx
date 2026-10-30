@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import {
   Check,
+  Copy,
   Edit,
   Trash2,
   Eye,
@@ -57,6 +58,7 @@ export function QuestionCard({
   const [isStatusChanging, setIsStatusChanging] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isChangingSubject, setIsChangingSubject] = useState(false);
+  const [copiedExplanation, setCopiedExplanation] = useState(false);
 
   // Inline Quick Edit State
   const [isQuickEditing, setIsQuickEditing] = useState(false);
@@ -461,12 +463,34 @@ export function QuestionCard({
             })}
           </div>
 
-          {/* Explanation with Math Support */}
+          {/* Explanation with Math Support (Left-Accent Notion Style) */}
           {question.explanation && (
-            <div className="p-3 rounded-lg bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/60 text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-              <span className="font-semibold text-indigo-700 dark:text-indigo-400 block mb-1">
-                Explanation / সমাধান:
-              </span>
+            <div className="p-3.5 rounded-r-xl border-l-3 border-indigo-500 bg-slate-50/90 dark:bg-slate-900/40 border-y border-r border-slate-200/60 dark:border-slate-800/60 text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+              <div className="flex items-center justify-between gap-2 font-semibold text-indigo-700 dark:text-indigo-400 mb-1.5">
+                <span>Explanation / সমাধান:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(question.explanation || "");
+                    setCopiedExplanation(true);
+                    setTimeout(() => setCopiedExplanation(false), 2000);
+                  }}
+                  className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white px-2 py-0.5 rounded hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  title="সমাধান কপি করুন"
+                >
+                  {copiedExplanation ? (
+                    <>
+                      <Check className="h-3 w-3 text-emerald-500" />
+                      <span className="text-emerald-600 dark:text-emerald-400">কপি হয়েছে</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3 w-3" />
+                      <span>কপি</span>
+                    </>
+                  )}
+                </button>
+              </div>
               <MathText text={question.explanation} />
             </div>
           )}

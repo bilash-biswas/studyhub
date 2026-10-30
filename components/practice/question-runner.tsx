@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Check,
   X,
+  Copy,
 } from "lucide-react";
 import { Question, AttemptAnswer } from "@/types";
 import { MathText } from "@/components/ui/math-text";
@@ -51,6 +52,7 @@ export function QuestionRunner({
   const [bookmarkedMap, setBookmarkedMap] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [copiedExplanation, setCopiedExplanation] = useState(false);
 
   // Time tracking
   const startTimeRef = useRef<number>(Date.now());
@@ -59,6 +61,77 @@ export function QuestionRunner({
 
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
+
+  // Keyboard Navigation & Shortcuts (Minimal UX)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.isContentEditable ||
+        showConfirmModal ||
+        isSubmitting
+      ) {
+        return;
+      }
+
+      const key = e.key.toLowerCase();
+
+      // 1, 2, 3, 4, 5 or A, B, C, D, E for option selection
+      const keyMap: Record<string, number> = {
+        "1": 0, "a": 0,
+        "2": 1, "b": 1,
+        "3": 2, "c": 2,
+        "4": 3, "d": 3,
+        "5": 4, "e": 4,
+      };
+
+      if (key in keyMap) {
+        const optIdx = keyMap[key];
+        if (currentQuestion && currentQuestion.options[optIdx]) {
+          e.preventDefault();
+          handleOptionSelect(currentQuestion.options[optIdx].id);
+        }
+        return;
+      }
+
+      // ArrowRight or N -> Next
+      if (e.key === "ArrowRight" || key === "n") {
+        if (currentIndex < totalQuestions - 1) {
+          e.preventDefault();
+          handleIndexChange(currentIndex + 1);
+        }
+        return;
+      }
+
+      // ArrowLeft or P -> Previous
+      if (e.key === "ArrowLeft" || key === "p") {
+        if (currentIndex > 0) {
+          e.preventDefault();
+          handleIndexChange(currentIndex - 1);
+        }
+        return;
+      }
+
+      // F -> Flag for review
+      if (key === "f") {
+        e.preventDefault();
+        handleToggleMark();
+        return;
+      }
+
+      // M -> Toggle Bookmark
+      if (key === "m") {
+        e.preventDefault();
+        handleToggleBookmark();
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentIndex, totalQuestions, currentQuestion, showConfirmModal, isSubmitting, feedbackMode, selectedAnswers]);
 
   // Check bookmark status for current question
   useEffect(() => {
@@ -336,14 +409,40 @@ export function QuestionRunner({
 
             {/* Instant Mode Explanation Reveal */}
             {feedbackMode === "instant" && isCurrentAnswered && (
-              <div className="p-4 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60 text-xs text-slate-800 dark:text-slate-200 space-y-2 mt-4 animate-in fade-in duration-200">
-                <div className="flex items-center gap-1.5 font-bold text-indigo-700 dark:text-indigo-400">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>
-                    {currentSelectedOptionId === currentQuestion.correctOptionId
-                      ? "Correct Answer! চমৎকার!"
-                      : "Incorrect. সঠিক উত্তর পর্যালোচনা করুন:"}
-                  </span>
+              <div className="p-4 rounded-r-xl border-l-3 border-indigo-500 bg-slate-50/90 dark:bg-slate-900/40 border-y border-r border-slate-200/60 dark:border-slate-800/60 text-xs text-slate-800 dark:text-slate-200 space-y-2 mt-4 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between gap-2 font-bold text-indigo-700 dark:text-indigo-400">
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span>
+                      {currentSelectedOptionId === currentQuestion.correctOptionId
+                        ? "Correct Answer! চমৎকার!"
+                        : "Incorrect. সঠিক উত্তর পর্যালোচনা করুন:"}
+                    </span>
+                  </div>
+                  {currentQuestion.explanation && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(currentQuestion.explanation || "");
+                        setCopiedExplanation(true);
+                        setTimeout(() => setCopiedExplanation(false), 2000);
+                      }}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors"
+                      title="সমাধান কপি করুন"
+                    >
+                      {copiedExplanation ? (
+                        <>
+                          <Check className="h-3 w-3 text-emerald-500" />
+                          <span className="text-emerald-600 dark:text-emerald-400">কপি হয়েছে</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3 w-3" />
+                          <span>কপি</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
                 {currentQuestion.explanation ? (
                   <div className="leading-relaxed pt-1">

@@ -12,6 +12,8 @@ import {
   ChevronDown,
   ChevronUp,
   Lightbulb,
+  Copy,
+  Check,
 } from "lucide-react";
 
 interface QuestionReviewItemProps {
@@ -35,6 +37,7 @@ export function QuestionReviewItem({
 }: QuestionReviewItemProps) {
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [isExplanationOpen, setIsExplanationOpen] = useState(true);
+  const [copiedExplanation, setCopiedExplanation] = useState(false);
 
   const { selectedOptionId, isCorrect, timeSpentSeconds } = attemptAnswer;
   const isSkipped = !selectedOptionId;
@@ -233,7 +236,34 @@ export function QuestionReviewItem({
             </button>
 
             {isExplanationOpen && (
-              <div className="mt-2 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-normal">
+              <div className="mt-2 p-4 rounded-r-xl border-l-3 border-indigo-500 bg-slate-50/90 dark:bg-slate-900/40 border-y border-r border-slate-200/60 dark:border-slate-800/60 text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-normal">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-400">
+                    বিশদ সমাধান (Detailed Explanation):
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(question.explanation || "");
+                      setCopiedExplanation(true);
+                      setTimeout(() => setCopiedExplanation(false), 2000);
+                    }}
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white px-2 py-0.5 rounded hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    title="সমাধান কপি করুন"
+                  >
+                    {copiedExplanation ? (
+                      <>
+                        <Check className="h-3 w-3 text-emerald-500" />
+                        <span className="text-emerald-600 dark:text-emerald-400">কপি হয়েছে</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3 w-3" />
+                        <span>কপি</span>
+                      </>
+                    )}
+                  </button>
+                </div>
                 <MathText text={question.explanation} />
               </div>
             )}

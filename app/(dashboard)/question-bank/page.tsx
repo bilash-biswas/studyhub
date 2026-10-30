@@ -51,6 +51,8 @@ export default function QuestionBankStudyPage() {
 
   // Default state: Answers hidden for active self-testing, with a master switch
   const [autoRevealAll, setAutoRevealAll] = useState<boolean>(false);
+  // Density view state (Compact vs Detailed)
+  const [density, setDensity] = useState<"detailed" | "compact">("detailed");
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -301,8 +303,36 @@ export default function QuestionBankStudyPage() {
           </div>
         </div>
 
-        {/* Right Action Bar: Search & Master Answer Toggle */}
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        {/* Right Action Bar: Search, Density & Master Answer Toggle */}
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          {/* Density Toggle (Compact vs Detailed) */}
+          <div className="flex items-center rounded-full border border-slate-200 dark:border-slate-800 p-0.5 bg-slate-100 dark:bg-slate-800 text-[11px] font-medium">
+            <button
+              type="button"
+              onClick={() => setDensity("detailed")}
+              title={t("বিস্তারিত ভিউ", "Detailed view")}
+              className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                density === "detailed"
+                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-semibold"
+                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+              }`}
+            >
+              {t("বিস্তারিত", "Detailed")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDensity("compact")}
+              title={t("কমপ্যাক্ট ভিউ (এক নজরে দ্রুত ব্রাউজ)", "Compact view (Fast browse)")}
+              className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                density === "compact"
+                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-semibold"
+                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+              }`}
+            >
+              {t("কমপ্যাক্ট", "Compact")}
+            </button>
+          </div>
+
           {/* Minimal Search Input */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
@@ -521,6 +551,7 @@ export default function QuestionBankStudyPage() {
               isBookmarked={bookmarkedIds.has(question.id)}
               onToggleBookmark={handleToggleBookmark}
               subjectName={subjectMap.get(question.subjectId)}
+              density={density}
             />
           ))}
         </div>

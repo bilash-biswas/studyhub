@@ -22,8 +22,8 @@ function normalizeMathInput(raw: string): string {
   if (!raw) return "";
   let s = raw;
 
-  // 0. Auto-heal literal \n into real newlines
-  s = s.replace(/\\n/g, "\n");
+  // 0. Auto-heal literal \n into real newlines (while safely protecting LaTeX commands like \neq, \nabla, \nu, \notin)
+  s = s.replace(/\\n(?![a-zA-Z])/g, "\n");
 
   // 0.1 Auto-heal double-escaped LaTeX commands (\\frac -> \frac, \\implies -> \implies, etc.)
   s = s.replace(/\\\\([a-zA-Z]+)/g, (_, p1) => "\\" + p1);

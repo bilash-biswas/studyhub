@@ -136,6 +136,70 @@ export function ExamRunner({
     setCurrentIndex(newIndex);
   };
 
+  // Keyboard Shortcuts for Mock Exams (Minimal UX)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.isContentEditable ||
+        showConfirmModal ||
+        isSubmitting
+      ) {
+        return;
+      }
+
+      const key = e.key.toLowerCase();
+
+      // 1-5 or A-E to select options
+      const keyMap: Record<string, number> = {
+        "1": 0, "a": 0,
+        "2": 1, "b": 1,
+        "3": 2, "c": 2,
+        "4": 3, "d": 3,
+        "5": 4, "e": 4,
+      };
+
+      if (key in keyMap) {
+        const optIdx = keyMap[key];
+        if (currentQuestion && currentQuestion.options[optIdx]) {
+          e.preventDefault();
+          handleSelectOption(currentQuestion.options[optIdx].id);
+        }
+        return;
+      }
+
+      // ArrowRight or N -> Next
+      if (e.key === "ArrowRight" || key === "n") {
+        if (currentIndex < questions.length - 1) {
+          e.preventDefault();
+          handleNavigate(currentIndex + 1);
+        }
+        return;
+      }
+
+      // ArrowLeft or P -> Previous
+      if (e.key === "ArrowLeft" || key === "p") {
+        if (currentIndex > 0) {
+          e.preventDefault();
+          handleNavigate(currentIndex - 1);
+        }
+        return;
+      }
+
+      // F -> Flag / Review Toggle
+      if (key === "f") {
+        e.preventDefault();
+        handleToggleReview();
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentIndex, questions.length, currentQuestion, showConfirmModal, isSubmitting]);
+
   const handleFinalSubmit = async (isAutoExpire = false) => {
     if (isSubmitting) return;
     setIsSubmitting(true);

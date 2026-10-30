@@ -14,6 +14,10 @@ import {
   Trash2,
   Sparkles,
   ShieldCheck,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Check,
 } from "lucide-react";
 
 export interface StudyQuestionCardProps {
@@ -29,6 +33,7 @@ export interface StudyQuestionCardProps {
   removeTooltip?: string;
   showPracticeSingle?: boolean;
   onPracticeSingle?: (question: Question) => void;
+  density?: "detailed" | "compact";
 }
 
 export function StudyQuestionCard({
@@ -44,6 +49,7 @@ export function StudyQuestionCard({
   removeTooltip = "তালিকা থেকে সরান",
   showPracticeSingle = false,
   onPracticeSingle,
+  density = "detailed",
 }: StudyQuestionCardProps) {
   const { lang, t, n } = useLanguage();
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(
@@ -53,6 +59,8 @@ export function StudyQuestionCard({
     defaultRevealed || Boolean(initialSelectedOptionId)
   );
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  const [isCompactExpanded, setIsCompactExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Sync when parent updates initialSelectedOptionId
   useEffect(() => {
@@ -92,6 +100,52 @@ export function StudyQuestionCard({
   // Source / Batch label
   const sourceLabel =
     question.source || (question.tags?.find((t) => t.includes("bcs"))?.toUpperCase() ?? "");
+
+  // Compact Row View (Minimal UX)
+  if (density === "compact" && !isCompactExpanded) {
+    return (
+      <div
+        onClick={() => setIsCompactExpanded(true)}
+        className="group bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-3 sm:px-4 sm:py-3 shadow-2xs hover:border-indigo-300 dark:hover:border-indigo-700/60 transition-all cursor-pointer flex items-center justify-between gap-3"
+      >
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shrink-0">
+            {t(`প্রশ্ন ${n(index + 1)}`, `Q. ${index + 1}`)}
+          </span>
+          {sourceLabel && (
+            <span className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 shrink-0 hidden sm:inline">
+              {sourceLabel}
+            </span>
+          )}
+          <div className="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
+            <MathText text={question.question} />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleBookmark();
+            }}
+            disabled={bookmarkLoading}
+            className={`p-1.5 rounded-lg transition-colors ${
+              isBookmarked
+                ? "text-amber-500 bg-amber-50 dark:bg-amber-950/40"
+                : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
+          </button>
+          <div className="flex items-center gap-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 group-hover:underline">
+            <span className="hidden sm:inline">{t("উত্তর দেখুন", "View")}</span>
+            <ChevronDown className="h-4 w-4 transition-transform group-hover:translate-y-0.5" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
@@ -162,6 +216,18 @@ export function StudyQuestionCard({
 
         {/* Quiet Top-Right Actions */}
         <div className="flex items-center gap-1 shrink-0">
+          {/* Collapse Back Button if opened from compact mode */}
+          {density === "compact" && (
+            <button
+              type="button"
+              onClick={() => setIsCompactExpanded(false)}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 px-2 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mr-1 cursor-pointer"
+            >
+              <ChevronUp className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{t("সংক্ষেপ", "Collapse")}</span>
+            </button>
+          )}
+
           {/* Optional Remove (Bookmarks / Mistakes) */}
           {onRemove && (
             <button
@@ -337,12 +403,36 @@ export function StudyQuestionCard({
               )}
             </div>
 
-            {/* Explanation Box */}
+            {/* Explanation Box (Left-Accent Notion Style) */}
             {question.explanation && (
-              <div className="rounded-xl bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-100/80 dark:border-indigo-950/80 p-3.5 text-xs text-slate-800 dark:text-slate-200 leading-relaxed">
-                <div className="flex items-center gap-1.5 font-bold text-indigo-700 dark:text-indigo-400 mb-1">
-                  <Lightbulb className="h-3.5 w-3.5" />
-                  <span>{t("ব্যাখ্যা", "Explanation")}</span>
+              <div className="rounded-r-xl border-l-3 border-indigo-500 bg-slate-50/90 dark:bg-slate-900/40 border-y border-r border-slate-200/60 dark:border-slate-800/60 p-3.5 text-xs text-slate-800 dark:text-slate-200 leading-relaxed mt-3">
+                <div className="flex items-center justify-between gap-2 font-bold text-indigo-700 dark:text-indigo-400 mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Lightbulb className="h-3.5 w-3.5" />
+                    <span>{t("ব্যাখ্যা ও সমাধান", "Explanation & Solution")}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(question.explanation || "");
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white px-2 py-0.5 rounded hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    title={t("সমাধান কপি করুন", "Copy Solution")}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-3 w-3 text-emerald-500" />
+                        <span className="text-emerald-600 dark:text-emerald-400">{t("কপি হয়েছে", "Copied")}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3 w-3" />
+                        <span>{t("কপি", "Copy")}</span>
+                      </>
+                    )}
+                  </button>
                 </div>
                 <MathText text={question.explanation} />
               </div>
