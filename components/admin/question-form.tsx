@@ -56,6 +56,8 @@ export function QuestionForm({ initialQuestion, isEdit = false }: QuestionFormPr
     control,
     watch,
     setValue,
+    getValues,
+    reset,
     formState: { errors },
   } = useForm<QuestionFormData>({
     resolver: zodResolver(questionSchema),
@@ -63,12 +65,17 @@ export function QuestionForm({ initialQuestion, isEdit = false }: QuestionFormPr
       examId: initialQuestion?.examId || "",
       subjectId: initialQuestion?.subjectId || "",
       question: initialQuestion?.question || "",
-      options: initialQuestion?.options || [
-        { id: "a", text: "" },
-        { id: "b", text: "" },
-        { id: "c", text: "" },
-        { id: "d", text: "" },
-      ],
+      options: initialQuestion?.options?.length
+        ? initialQuestion.options.map((o, idx) => ({
+            id: o.id && o.id.length <= 2 ? o.id : String.fromCharCode(97 + idx),
+            text: o.text || "",
+          }))
+        : [
+            { id: "a", text: "" },
+            { id: "b", text: "" },
+            { id: "c", text: "" },
+            { id: "d", text: "" },
+          ],
       correctOptionId: initialQuestion?.correctOptionId || "a",
       explanation: initialQuestion?.explanation || "",
       difficulty: initialQuestion?.difficulty || "medium",
@@ -88,40 +95,99 @@ export function QuestionForm({ initialQuestion, isEdit = false }: QuestionFormPr
 
   const selectedExamId = watch("examId");
   const watchQuestion = watch("question");
-  const watchOptions = watch("options");
+  const watchOptions = watch("options") || [];
   const watchExplanation = watch("explanation");
   const watchCorrectOptionId = watch("correctOptionId");
   const watchAdminVerified = watch("adminVerified");
 
-  // Load active exams
+  // Keep form in sync when initialQuestion is loaded or updated
+  useEffect(() => {
+    if (initialQuestion) {
+      reset({
+        examId: initialQuestion.examId || "",
+        subjectId: initialQuestion.subjectId || "",
+        question: initialQuestion.question || "",
+        options: initialQuestion.options?.length
+          ? initialQuestion.options.map((o, idx) => ({
+              id: o.id && o.id.length <= 2 ? o.id : String.fromCharCode(97 + idx),
+              text: o.text || "",
+            }))
+          : [
+              { id: "a", text: "" },
+              { id: "b", text: "" },
+              { id: "c", text: "" },
+              { id: "d", text: "" },
+            ],
+        correctOptionId: initialQuestion.correctOptionId || "a",
+        explanation: initialQuestion.explanation || "",
+        difficulty: initialQuestion.difficulty || "medium",
+        year: initialQuestion.year || new Date().getFullYear(),
+        source: initialQuestion.source || "",
+        tags: initialQuestion.tags || ["general"],
+        imageUrl: initialQuestion.imageUrl || null,
+        status: initialQuestion.status || "published",
+        adminVerified: initialQuestion.adminVerified ?? false,
+      });
+      setTagsInput(initialQuestion.tags?.join(", ") || "");
+      setImagePreviewUrl(initialQuestion.imageUrl || null);
+    }
+  }, [initialQuestion, reset]);
+
+  // Load active exams & auto-sync examId
   useEffect(() => {
     async function fetchCatalogs() {
       setLoadingCatalogs(true);
       const examList = await getExams(true);
       setExams(examList);
+
+      const currentExamId = getValues("examId");
+      if (!currentExamId && initialQuestion?.examId) {
+        setValue("examId", initialQuestion.examId);
+      } else if (!currentExamId && examList.length > 0) {
+        const isBcs = initialQuestion?.id?.startsWith("bcs_") || initialQuestion?.tags?.some((t) => t.includes("bcs"));
+        if (isBcs) {
+          const bcsExam = examList.find(
+            (e) => e.slug === "bcs" || e.id === "bcs" || e.name.toLowerCase().includes("bcs")
+          );
+          if (bcsExam) {
+            setValue("examId", bcsExam.id);
+          }
+        }
+      }
       setLoadingCatalogs(false);
     }
     fetchCatalogs();
-  }, []);
+  }, [initialQuestion, setValue, getValues]);
 
-  // Filter subjects when examId changes (fallback to all subjects so edit mode is never empty)
+  // Filter subjects when examId changes & auto-sync subjectId
   useEffect(() => {
     async function fetchSubjects() {
-      if (!selectedExamId) {
-        const allSubs = await getSubjects(true);
-        setSubjects(allSubs);
-        return;
+      const examIdToUse = selectedExamId || initialQuestion?.examId;
+      let subList: Subject[] = [];
+      if (examIdToUse) {
+        subList = await getSubjectsByExamId(examIdToUse, true);
       }
-      const subList = await getSubjectsByExamId(selectedExamId, true);
-      if (subList.length > 0) {
-        setSubjects(subList);
-      } else {
-        const allSubs = await getSubjects(true);
-        setSubjects(allSubs);
+      if (subList.length === 0) {
+        subList = await getSubjects(true);
+      }
+      setSubjects(subList);
+
+      const currentSubId = getValues("subjectId");
+      if (!currentSubId && initialQuestion?.subjectId) {
+        setValue("subjectId", initialQuestion.subjectId);
+      } else if (!currentSubId && subList.length > 0 && initialQuestion?.tags) {
+        const matched = subList.find((s) =>
+          initialQuestion.tags.some(
+            (t) => t === s.id || s.name.toLowerCase().includes(t)
+          )
+        );
+        if (matched) {
+          setValue("subjectId", matched.id);
+        }
       }
     }
     fetchSubjects();
-  }, [selectedExamId]);
+  }, [selectedExamId, initialQuestion, setValue, getValues]);
 
   // Handle Tag Input Change
   const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -292,7 +358,9 @@ export function QuestionForm({ initialQuestion, isEdit = false }: QuestionFormPr
 
                   <div className="space-y-2.5">
                     {fields.map((field, index) => {
-                      const isCorrect = watchCorrectOptionId === field.id;
+                      const optionLetter = String.fromCharCode(65 + index); // A, B, C, D...
+                      const optionId = watchOptions[index]?.id || String.fromCharCode(97 + index); // a, b, c, d...
+                      const isCorrect = watchCorrectOptionId === optionId;
                       return (
                         <div
                           key={field.id}
@@ -307,20 +375,33 @@ export function QuestionForm({ initialQuestion, isEdit = false }: QuestionFormPr
                             type="radio"
                             name="correctOptionRadio"
                             checked={isCorrect}
-                            onChange={() => setValue("correctOptionId", field.id, { shouldValidate: true })}
-                            className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
-                            title="Mark as correct option"
+                            onChange={() => setValue("correctOptionId", optionId, { shouldValidate: true })}
+                            className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer shrink-0"
+                            title={`Mark Option ${optionLetter} as correct`}
                           />
 
                           {/* Option Badge */}
-                          <span className="h-6 w-6 rounded-md bg-slate-100 dark:bg-slate-800 text-xs font-bold flex items-center justify-center shrink-0 uppercase text-slate-700 dark:text-slate-300">
-                            {field.id}
+                          <span
+                            className={`h-6 w-6 rounded-md text-xs font-bold flex items-center justify-center shrink-0 uppercase transition-colors ${
+                              isCorrect
+                                ? "bg-emerald-600 text-white"
+                                : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                            }`}
+                          >
+                            {optionLetter}
                           </span>
+
+                          {/* Hidden input to ensure options[index].id is preserved on submit */}
+                          <input
+                            type="hidden"
+                            {...register(`options.${index}.id` as const)}
+                            value={optionId}
+                          />
 
                           {/* Option Input */}
                           <Input
-                            placeholder={`Option ${field.id.toUpperCase()} text (e.g. $18$ or বাংলা উত্তর)`}
-                            className="h-9 text-xs"
+                            placeholder={`Option ${optionLetter} text (e.g. $18$ or বাংলা উত্তর)`}
+                            className="h-9 text-xs flex-1 min-w-0"
                             {...register(`options.${index}.text` as const)}
                           />
 
@@ -328,8 +409,16 @@ export function QuestionForm({ initialQuestion, isEdit = false }: QuestionFormPr
                           {fields.length > 2 && (
                             <button
                               type="button"
-                              onClick={() => remove(index)}
-                              className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                              onClick={() => {
+                                remove(index);
+                                if (watchCorrectOptionId === optionId) {
+                                  const remaining = watchOptions.filter((_, i) => i !== index);
+                                  if (remaining.length > 0) {
+                                    setValue("correctOptionId", remaining[0]?.id || "a", { shouldValidate: true });
+                                  }
+                                }
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors shrink-0"
                               title="Remove option"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -635,11 +724,12 @@ export function QuestionForm({ initialQuestion, isEdit = false }: QuestionFormPr
 
                 {/* Options Preview */}
                 <div className="space-y-2">
-                  {watchOptions.map((opt) => {
+                  {watchOptions.map((opt, idx) => {
+                    const optionLetter = String.fromCharCode(65 + idx);
                     const isCorrect = watchCorrectOptionId === opt.id;
                     return (
                       <div
-                        key={opt.id}
+                        key={opt.id || idx}
                         className={`p-2.5 rounded-lg border text-xs sm:text-sm flex items-center gap-2.5 transition-colors ${
                           isCorrect
                             ? "bg-[#ECFDF5] border-[#10B981] text-[#047857] dark:bg-[#064E3B]/60 dark:border-[#34D399] dark:text-[#A7F3D0] font-medium"
@@ -653,13 +743,13 @@ export function QuestionForm({ initialQuestion, isEdit = false }: QuestionFormPr
                               : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
                           }`}
                         >
-                          {opt.id}
+                          {optionLetter}
                         </span>
                         <div className="flex-1 min-w-0">
                           {opt.text ? (
                             <MathText text={opt.text} />
                           ) : (
-                            <span className="text-slate-400 italic text-xs">Option {opt.id.toUpperCase()}</span>
+                            <span className="text-slate-400 italic text-xs">Option {optionLetter}</span>
                           )}
                         </div>
                         {isCorrect && (

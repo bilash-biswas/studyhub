@@ -299,7 +299,7 @@ export function QuestionCard({
                       title="সঠিক উত্তর হিসেবে চিহ্নিত করুন"
                     />
                     <span className="h-5 w-5 rounded-full bg-slate-200 dark:bg-slate-800 text-[11px] font-bold flex items-center justify-center uppercase shrink-0">
-                      {opt.id}
+                      {String.fromCharCode(65 + idx)}
                     </span>
                     <Input
                       value={opt.text}
@@ -432,7 +432,7 @@ export function QuestionCard({
 
           {/* Options List */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
-            {question.options.map((opt) => {
+            {question.options.map((opt, idx) => {
               const isCorrect = opt.id === question.correctOptionId;
               return (
                 <div
@@ -450,7 +450,7 @@ export function QuestionCard({
                         : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
                     }`}
                   >
-                    {opt.id}
+                    {String.fromCharCode(65 + idx)}
                   </span>
                   <div className="flex-1 min-w-0">
                     <MathText text={opt.text} />
