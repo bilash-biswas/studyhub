@@ -65,8 +65,24 @@ export async function getQuestions(
 
     if (filters.tag) {
       const rawTag = filters.tag.toLowerCase().trim();
-      const normalizedTag = rawTag.replace(/^(\d+(?:st|nd|rd|th))-bcs$/, "$1bcs-bcs");
-      constraints.push(where("tags", "array-contains", normalizedTag));
+      const bcsMatch = rawTag.match(/^#?(\d+(?:st|nd|rd|th))-?bcs$/);
+      if (bcsMatch) {
+        const prefix = bcsMatch[1];
+        const tagVariants = Array.from(
+          new Set([
+            `${prefix}-bcs`,
+            `${prefix}bcs`,
+            `${prefix}bcs-bcs`,
+            `#${prefix}-bcs`,
+            `#${prefix}bcs`,
+            `#${prefix}bcs-bcs`,
+          ])
+        );
+        constraints.push(where("tags", "array-contains-any", tagVariants));
+      } else {
+        const tagVariants = Array.from(new Set([rawTag, `#${rawTag}`]));
+        constraints.push(where("tags", "array-contains-any", tagVariants));
+      }
     }
 
     if (typeof filters.adminVerified === "boolean") {
@@ -113,8 +129,24 @@ export async function getQuestions(
         }
         if (filters.tag) {
           const rawTag = filters.tag.toLowerCase().trim();
-          const normalizedTag = rawTag.replace(/^(\d+(?:st|nd|rd|th))-bcs$/, "$1bcs-bcs");
-          fallbackConstraints.push(where("tags", "array-contains", normalizedTag));
+          const bcsMatch = rawTag.match(/^#?(\d+(?:st|nd|rd|th))-?bcs$/);
+          if (bcsMatch) {
+            const prefix = bcsMatch[1];
+            const tagVariants = Array.from(
+              new Set([
+                `${prefix}-bcs`,
+                `${prefix}bcs`,
+                `${prefix}bcs-bcs`,
+                `#${prefix}-bcs`,
+                `#${prefix}bcs`,
+                `#${prefix}bcs-bcs`,
+              ])
+            );
+            fallbackConstraints.push(where("tags", "array-contains-any", tagVariants));
+          } else {
+            const tagVariants = Array.from(new Set([rawTag, `#${rawTag}`]));
+            fallbackConstraints.push(where("tags", "array-contains-any", tagVariants));
+          }
         }
         if (typeof filters.adminVerified === "boolean") {
           fallbackConstraints.push(where("adminVerified", "==", filters.adminVerified));
