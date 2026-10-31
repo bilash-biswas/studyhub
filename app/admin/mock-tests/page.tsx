@@ -77,8 +77,8 @@ export default function AdminMockTestsPage() {
     setIsSubmitting(true);
     setErrorMsg(null);
     try {
-      // Pick random published questions for this exam
-      const qRes = await getQuestions({ examId, status: "published" }, totalQuestions);
+      // Pick random published verified questions for this exam
+      const qRes = await getQuestions({ examId, status: "published", adminVerified: true }, totalQuestions);
       const questionIds = qRes.questions.map((q) => q.id);
 
       await createMockTest({

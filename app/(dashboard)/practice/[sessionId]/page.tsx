@@ -69,14 +69,15 @@ export default function PracticeSessionPage() {
           (config as any).questionIds.length > 0
         ) {
           const targeted = await getQuestionsByIds((config as any).questionIds);
-          if (targeted.length === 0) {
+          const verifiedTargeted = targeted.filter((q) => q.adminVerified === true);
+          if (verifiedTargeted.length === 0) {
             setErrorMsg("Could not load the targeted practice questions.");
           } else {
-            setQuestions(targeted);
+            setQuestions(verifiedTargeted);
           }
         } else {
-          // Fetch published questions matching filters
-          const filters: any = { status: "published" };
+          // Fetch published verified questions matching filters
+          const filters: any = { status: "published", adminVerified: true };
           if (config.examId) filters.examId = config.examId;
           if (config.subjectId) filters.subjectId = config.subjectId;
           if (config.batchTag) filters.tag = config.batchTag;
@@ -89,7 +90,7 @@ export default function PracticeSessionPage() {
           // If pool is empty, auto-seed sample questions and refetch
           if (res.questions.length === 0) {
             await seedSampleQuestions(user?.uid || "system");
-            res = await getQuestions({ status: "published" }, 50);
+            res = await getQuestions({ status: "published", adminVerified: true }, 50);
           }
 
           // Deterministically select N questions using Fisher-Yates shuffle

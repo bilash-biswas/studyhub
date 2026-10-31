@@ -108,14 +108,14 @@ export default function LiveQuizLobbyPage() {
     setIsCreating(true);
     setHostError(null);
     try {
-      const filter: any = { status: "published" };
+      const filter: any = { status: "published", adminVerified: true };
       if (hostExamId) filter.examId = hostExamId;
       if (hostSubjectId !== "all") filter.subjectId = hostSubjectId;
 
       let res = await getQuestions(filter, 30);
       if (res.questions.length === 0) {
         await seedSampleQuestions(user.uid);
-        res = await getQuestions({ status: "published" }, 30);
+        res = await getQuestions({ status: "published", adminVerified: true }, 30);
       }
 
       const selected = res.questions.slice(0, hostQuestionCount);

@@ -40,21 +40,22 @@ export default function TimedExamPage() {
 
         let qList: Question[] = [];
         if (test.questionIds && test.questionIds.length > 0) {
-          qList = await getQuestionsByIds(test.questionIds);
+          const loaded = await getQuestionsByIds(test.questionIds);
+          qList = loaded.filter((q) => q.adminVerified === true);
         }
 
-        // If question pool is empty, fetch published questions for this exam (and batch tag if BCS batch test)
+        // If question pool is empty, fetch published verified questions for this exam (and batch tag if BCS batch test)
         if (qList.length === 0) {
           const batchMatch = test.id.match(/^mock_bcs_(\d+(?:st|nd|rd|th))$/i);
           const batchTag = batchMatch ? `${batchMatch[1].toLowerCase()}-bcs` : undefined;
           let res = await getQuestions(
-            { examId: test.examId, tag: batchTag, status: "published" },
+            { examId: test.examId, tag: batchTag, status: "published", adminVerified: true },
             Math.max(test.totalQuestions, 100)
           );
           if (res.questions.length === 0) {
             // Seed questions if empty
             await seedSampleQuestions(user?.uid || "system");
-            res = await getQuestions({ status: "published" }, test.totalQuestions);
+            res = await getQuestions({ status: "published", adminVerified: true }, test.totalQuestions);
           }
           qList = res.questions.slice(0, test.totalQuestions);
         }

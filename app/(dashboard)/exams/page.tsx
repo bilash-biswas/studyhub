@@ -46,7 +46,7 @@ export default function MockExamsCatalogPage() {
 
         if (testList.length === 0) {
           // Auto-seed sample tests
-          const qRes = await getQuestions({ status: "published" }, 50);
+          const qRes = await getQuestions({ status: "published", adminVerified: true }, 50);
           const qIds = qRes.questions.map((q) => q.id);
           await seedSampleMockTests(qIds);
           const seeded = await getMockTests();

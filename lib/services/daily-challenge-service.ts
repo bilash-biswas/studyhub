@@ -35,14 +35,17 @@ export async function getTodayDailyChallenge(): Promise<{
     if (snap.exists()) {
       const challenge = snap.data() as DailyChallenge;
       const questions = await getQuestionsByIds(challenge.questionIds);
-      return { challenge, questions };
+      const verifiedQuestions = questions.filter((q) => q.adminVerified === true);
+      if (verifiedQuestions.length === challenge.questionIds.length && verifiedQuestions.length > 0) {
+        return { challenge, questions: verifiedQuestions };
+      }
     }
 
-    // Generate new Daily Challenge for today
-    let res = await getQuestions({ status: "published" }, 20);
+    // Generate new Daily Challenge for today from verified questions only
+    let res = await getQuestions({ status: "published", adminVerified: true }, 20);
     if (res.questions.length === 0) {
       await seedSampleQuestions("system");
-      res = await getQuestions({ status: "published" }, 20);
+      res = await getQuestions({ status: "published", adminVerified: true }, 20);
     }
 
     // Select 5 questions

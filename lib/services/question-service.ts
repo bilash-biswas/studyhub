@@ -116,7 +116,11 @@ export async function getQuestions(
     };
   } catch (error: any) {
     // If a composite index is missing or building, fall back to simple filtering and in-memory sort
-    if (error?.message?.includes("requires an index") || error?.code === "failed-precondition") {
+    if (
+      error?.message?.includes("requires an index") ||
+      error?.message?.includes("building") ||
+      error?.code === "failed-precondition"
+    ) {
       try {
         const fallbackConstraints: QueryConstraint[] = [];
         if (filters.examId) fallbackConstraints.push(where("examId", "==", filters.examId));
@@ -151,25 +155,22 @@ export async function getQuestions(
         if (typeof filters.adminVerified === "boolean") {
           fallbackConstraints.push(where("adminVerified", "==", filters.adminVerified));
         }
-        fallbackConstraints.push(limit(pageSize * 3));
+        if (lastDocSnap) {
+          fallbackConstraints.push(startAfter(lastDocSnap));
+        }
+        fallbackConstraints.push(limit(pageSize + 1));
 
         const fallbackQ = query(questionsCol(), ...fallbackConstraints);
         const snapshot = await getDocs(fallbackQ);
 
-        const allDocs = snapshot.docs.map((docSnap) => ({
+        const hasMore = snapshot.docs.length > pageSize;
+        const docs = hasMore ? snapshot.docs.slice(0, pageSize) : snapshot.docs;
+        const lastDoc = docs.length > 0 ? docs[docs.length - 1] : null;
+
+        const questions = docs.map((docSnap) => ({
           id: docSnap.id,
           ...docSnap.data(),
         })) as Question[];
-
-        allDocs.sort((a: any, b: any) => {
-          const tA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt || 0).getTime();
-          const tB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt || 0).getTime();
-          return tB - tA;
-        });
-
-        const hasMore = allDocs.length > pageSize;
-        const questions = allDocs.slice(0, pageSize);
-        const lastDoc = snapshot.docs.length > 0 ? snapshot.docs[Math.min(pageSize - 1, snapshot.docs.length - 1)] : null;
 
         return {
           questions,
@@ -561,18 +562,22 @@ export async function getQuestionStats(): Promise<{
 }
 
 export async function getSubjectQuestionCounts(
-  subjectIds: string[]
+  subjectIds: string[],
+  verifiedOnly: boolean = false
 ): Promise<Record<string, number>> {
   const counts: Record<string, number> = {};
   try {
     await Promise.all(
       subjectIds.map(async (subId) => {
+        const constraints: QueryConstraint[] = [
+          where("status", "==", "published"),
+          where("subjectId", "==", subId),
+        ];
+        if (verifiedOnly) {
+          constraints.push(where("adminVerified", "==", true));
+        }
         const snap = await getCountFromServer(
-          query(
-            questionsCol(),
-            where("status", "==", "published"),
-            where("subjectId", "==", subId)
-          )
+          query(questionsCol(), ...constraints)
         );
         counts[subId] = snap.data().count;
       })

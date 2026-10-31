@@ -46,7 +46,6 @@ export default function QuestionBankStudyPage() {
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>("");
   const [selectedBatchTag, setSelectedBatchTag] = useState<string>("");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
-  const [selectedVerified, setSelectedVerified] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Default state: Answers hidden for active self-testing, with a master switch
@@ -123,7 +122,7 @@ export default function QuestionBankStudyPage() {
         setSelectedSubjectId("");
 
         if (subs.length > 0) {
-          const counts = await getSubjectQuestionCounts(subs.map((s) => s.id));
+          const counts = await getSubjectQuestionCounts(subs.map((s) => s.id), true);
           setSubjectCounts(counts);
         } else {
           setSubjectCounts({});
@@ -162,6 +161,7 @@ export default function QuestionBankStudyPage() {
       try {
         const filters: QuestionFilters = {
           status: "published",
+          adminVerified: true, // App and web strictly show only verified questions
         };
 
         if (selectedExamId) filters.examId = selectedExamId;
@@ -169,11 +169,6 @@ export default function QuestionBankStudyPage() {
         if (selectedBatchTag) filters.tag = selectedBatchTag;
         if (selectedDifficulty && selectedDifficulty !== "all") {
           filters.difficulty = selectedDifficulty as any;
-        }
-        if (selectedVerified === "verified") {
-          filters.adminVerified = true;
-        } else if (selectedVerified === "unverified") {
-          filters.adminVerified = false;
         }
 
         const res = await getQuestions(filters, pageSize, lastDoc);
@@ -193,7 +188,7 @@ export default function QuestionBankStudyPage() {
         setLoading(false);
       }
     },
-    [selectedExamId, selectedSubjectId, selectedBatchTag, selectedDifficulty, selectedVerified]
+    [selectedExamId, selectedSubjectId, selectedBatchTag, selectedDifficulty]
   );
 
   // Trigger fetch when primary filters change
@@ -258,7 +253,6 @@ export default function QuestionBankStudyPage() {
     setSelectedSubjectId("");
     setSelectedBatchTag("");
     setSelectedDifficulty("all");
-    setSelectedVerified("all");
     setSearchQuery("");
   };
 

@@ -75,7 +75,7 @@ export default function BookmarksPage() {
         const bookmarkIds = Object.keys(bookmarksMap);
         if (bookmarkIds.length > 0) {
           const loadedQuestions = await getQuestionsByIds(bookmarkIds);
-          setQuestions(loadedQuestions);
+          setQuestions(loadedQuestions.filter((q) => q.adminVerified === true));
         } else {
           setQuestions([]);
         }

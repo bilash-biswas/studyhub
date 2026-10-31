@@ -74,7 +74,7 @@ export default function MistakeBankPage() {
 
         if (mistakeIds.length > 0) {
           const loadedQuestions = await getQuestionsByIds(mistakeIds);
-          setQuestions(loadedQuestions);
+          setQuestions(loadedQuestions.filter((q) => q.adminVerified === true));
         } else {
           setQuestions([]);
         }
