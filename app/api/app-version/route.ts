@@ -3,16 +3,16 @@ import { NextResponse } from "next/server";
 export async function GET() {
   return NextResponse.json(
     {
-      latestVersion: "1.0.8",
-      latestBuildNumber: 9,
+      latestVersion: "1.0.9",
+      latestBuildNumber: 10,
       minSupportedBuildNumber: 1,
       apkUrl: "https://medhavi-nine.vercel.app/downloads/medhavi-app.apk",
-      apkSize: "58.9 MB",
+      apkSize: "59.0 MB",
       forceUpdate: false,
       releaseNotesBn:
-        "• শুধুমাত্র ভেরিফাইড প্রশ্ন প্রদর্শনের শতভাগ নিশ্চয়তা (Question Bank, Practice, Daily Challenge, Bookmarks, Mistakes, Live Quiz)\n• দৈনিক চ্যালেঞ্জের অফলাইন ও কোটা সুরক্ষা ব্যাকআপ (Zero-Failure Daily Challenge)\n• অ্যাপের গতি ও স্থিতিশীলতা বৃদ্ধি",
+        "• ডামি/ফেক ইউজার ও প্লেসহোল্ডার ডেটা সম্পূর্ণ অপসারণ\n• ফায়ারস্টোর রিয়েল-টাইম লিডারবোর্ড ইন্টিগ্রেশন (সরাসরি আসল পরীক্ষার্থীদের স্কোর প্রদর্শিত হবে)\n• লাইভ কুইজ ও স্পিড ড্রিলে ডাইনামিক ভেরিফাইড প্রশ্ন সংযুক্তকরণ\n• অ্যাপের গতি ও স্থিতিশীলতা বৃদ্ধি",
       releaseNotesEn:
-        "• Strictly 100% admin-verified questions across all features\n• Zero-failure Daily Challenge with offline fallback protection\n• Performance optimizations and stability improvements",
+        "• Complete elimination of dummy/mock user data and placeholders\n• Real-time Firestore national leaderboard integration with authentic candidates\n• Dynamic verified questions connected to Live Quiz and Speed Drills\n• Performance and stability enhancements",
       publishedAt: new Date().toISOString(),
     },
     {
