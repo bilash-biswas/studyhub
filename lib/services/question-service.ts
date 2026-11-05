@@ -19,6 +19,7 @@ import {
 } from "firebase/firestore";
 import { db, questionsCol, questionDoc } from "@/lib/firebase/firestore";
 import { Question, QuestionDifficulty, QuestionStatus } from "@/types";
+import { getCacheItem, setCacheItem } from "@/lib/cache/idb-cache";
 
 export interface QuestionFilters {
   examId?: string;
@@ -195,14 +196,23 @@ export async function getQuestions(
  * Fetches a single question by ID
  */
 export async function getQuestionById(id: string): Promise<Question | null> {
+  const cacheKey = `q_${id}`;
+  try {
+    const cached = await getCacheItem<Question>(cacheKey);
+    if (cached) return cached;
+  } catch {}
+
   try {
     const snapshot = await getDoc(questionDoc(id));
     if (!snapshot.exists()) return null;
 
-    return {
+    const data = {
       id: snapshot.id,
       ...snapshot.data(),
     } as Question;
+
+    setCacheItem(cacheKey, data).catch(() => {});
+    return data;
   } catch (error) {
     console.error(`Error fetching question ${id}:`, error);
     return null;
@@ -210,28 +220,48 @@ export async function getQuestionById(id: string): Promise<Question | null> {
 }
 
 /**
- * Fetches multiple questions by their IDs efficiently using chunked Firestore 'in' queries.
+ * Fetches multiple questions by their IDs efficiently using chunked Firestore 'in' queries
+ * and zero-read client caching.
  */
 export async function getQuestionsByIds(ids: string[]): Promise<Question[]> {
   if (!ids || ids.length === 0) return [];
   const results: Question[] = [];
   const uniqueIds = Array.from(new Set(ids));
+  const missingIds: string[] = [];
 
-  try {
-    for (let i = 0; i < uniqueIds.length; i += 30) {
-      const chunk = uniqueIds.slice(i, i + 30);
-      const q = query(questionsCol(), where(documentId(), "in", chunk));
-      const snap = await getDocs(q);
-      snap.docs.forEach((d) => {
-        results.push({ id: d.id, ...d.data() } as Question);
-      });
+  // Check client cache first
+  await Promise.all(
+    uniqueIds.map(async (id) => {
+      try {
+        const cached = await getCacheItem<Question>(`q_${id}`);
+        if (cached) results.push(cached);
+        else missingIds.push(id);
+      } catch {
+        missingIds.push(id);
+      }
+    })
+  );
+
+  // Fetch only missing questions from Firestore
+  if (missingIds.length > 0) {
+    try {
+      for (let i = 0; i < missingIds.length; i += 30) {
+        const chunk = missingIds.slice(i, i + 30);
+        const q = query(questionsCol(), where(documentId(), "in", chunk));
+        const snap = await getDocs(q);
+        snap.docs.forEach((d) => {
+          const item = { id: d.id, ...d.data() } as Question;
+          results.push(item);
+          setCacheItem(`q_${item.id}`, item).catch(() => {});
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching missing questions by IDs:", error);
     }
-    const questionMap = new Map(results.map((q) => [q.id, q]));
-    return ids.map((id) => questionMap.get(id)).filter(Boolean) as Question[];
-  } catch (error) {
-    console.error("Error fetching questions by IDs:", error);
-    return [];
   }
+
+  const questionMap = new Map(results.map((q) => [q.id, q]));
+  return ids.map((id) => questionMap.get(id)).filter(Boolean) as Question[];
 }
 
 /**

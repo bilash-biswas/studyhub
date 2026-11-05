@@ -9,6 +9,7 @@ import {
 } from "@/lib/services/mock-test-service";
 import { getExams } from "@/lib/services/exam-service";
 import { getQuestions } from "@/lib/services/question-service";
+import { generateBpscStandardQuestions } from "@/lib/services/mock-test-generator";
 import { useLanguage } from "@/lib/context/language-context";
 import { ExamCatalogSkeleton } from "@/components/ui/skeletons";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,40 @@ export default function MockExamsCatalogPage() {
   const [selectedExamId, setSelectedExamId] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [isGeneratingMock, setIsGeneratingMock] = useState(false);
+
+  const handleStartOfficialBpscMock = async () => {
+    setIsGeneratingMock(true);
+    try {
+      const { questions } = await generateBpscStandardQuestions();
+      if (questions.length === 0) {
+        alert(t("প্রশ্ন লোড করা যায়নি। পুনরায় চেষ্টা করুন।", "Failed to load test questions. Please try again."));
+        return;
+      }
+
+      const sessionId = `bpsc_200_${Date.now()}`;
+      const config = {
+        examId: "exam_bcs",
+        title: "বিসিএস প্রিলিমিনারি পূর্ণাঙ্গ ২০০ নম্বরের অফিসিয়াল মডেল টেস্ট",
+        questionIds: questions.map((q) => q.id),
+        count: questions.length,
+        durationMinutes: 120,
+        correctMark: 1.0,
+        wrongMark: 0.50,
+        feedbackMode: "exam",
+      };
+
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(`session_${sessionId}`, JSON.stringify(config));
+      }
+      router.push(`/practice/${sessionId}`);
+    } catch (err) {
+      console.error("Error generating official BPSC mock:", err);
+      alert("Failed to start official mock test.");
+    } finally {
+      setIsGeneratingMock(false);
+    }
+  };
 
   useEffect(() => {
     async function loadCatalog() {
@@ -123,6 +158,40 @@ export default function MockExamsCatalogPage() {
           <Sparkles className="h-3.5 w-3.5 text-[#4F46E5]" />
           {t("কাস্টম অনুশীলন", "Custom Practice")}
         </Button>
+      </div>
+
+      {/* Official BPSC Standard 200-Mark Full Mock Test Hero */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white p-6 sm:p-7 shadow-md border border-indigo-500/20">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div className="space-y-2 max-w-2xl">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-semibold border border-amber-400/30">
+              <Award className="h-3.5 w-3.5" />
+              <span>{t("বিপিএসসি অফিসিয়াল সিলেবাস সিমুলেশন", "BPSC Official Syllabus Simulation")}</span>
+            </div>
+            <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+              {t("বিসিএস প্রিলিমিনারি পূর্ণাঙ্গ ২০০ নম্বরের মডেল টেস্ট", "BCS Preliminary Full 200-Mark Model Test")}
+            </h2>
+            <p className="text-xs sm:text-sm text-indigo-200/90 leading-relaxed">
+              {t(
+                "১০টি বিষয়ের নির্ধারিত কোটা (বাংলা ৩৫, ইংরেজি ৩৫, বাংলাদেশ ৩০, আন্তর্জাতিক ২০, বিজ্ঞান ১৫, আইসিটি ১৫, গণিত ১৫, মানসিক ১৫, ভূগোল ১০, নৈতিকতা ১০), ২ ঘণ্টার টাইমার এবং -০.৫০ নেগেটিভ মার্কিং।",
+                "Official 10-subject quota (Bangla 35, English 35, BD Affairs 30, Intl 20, Science 15, ICT 15, Math 15, Mental 15, Geography 10, Ethics 10), 2-hour timer, and -0.50 negative marking."
+              )}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <Button
+              onClick={handleStartOfficialBpscMock}
+              disabled={isGeneratingMock}
+              className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold px-5 py-2.5 rounded-xl shadow-md text-xs sm:text-sm cursor-pointer"
+            >
+              <Timer className="h-4 w-4 mr-1.5" />
+              {isGeneratingMock
+                ? t("প্রশ্নপত্র তৈরি হচ্ছে...", "Generating paper...")
+                : t("পূর্ণাঙ্গ পরীক্ষা শুরু করুন (১২০ মিনিট)", "Start Full 120-Min Exam")}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Filter Tabs by Exam */}
