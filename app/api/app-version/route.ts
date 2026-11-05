@@ -3,16 +3,16 @@ import { NextResponse } from "next/server";
 export async function GET() {
   return NextResponse.json(
     {
-      latestVersion: "1.0.9",
-      latestBuildNumber: 10,
+      latestVersion: "1.0.10",
+      latestBuildNumber: 11,
       minSupportedBuildNumber: 1,
       apkUrl: "https://medhavi-nine.vercel.app/downloads/medhavi-app.apk",
       apkSize: "59.0 MB",
       forceUpdate: false,
       releaseNotesBn:
-        "• ডামি/ফেক ইউজার ও প্লেসহোল্ডার ডেটা সম্পূর্ণ অপসারণ\n• ফায়ারস্টোর রিয়েল-টাইম লিডারবোর্ড ইন্টিগ্রেশন (সরাসরি আসল পরীক্ষার্থীদের স্কোর প্রদর্শিত হবে)\n• লাইভ কুইজ ও স্পিড ড্রিলে ডাইনামিক ভেরিফাইড প্রশ্ন সংযুক্তকরণ\n• অ্যাপের গতি ও স্থিতিশীলতা বৃদ্ধি",
+        "• দৈনিক চ্যালেঞ্জের ফলাফল ও আসল স্কোর লোডিং সমস্যার সমাধান\n• 'পুনরায় অনুশীলন করুন' বাটন সংযোজন (দৈনিক চ্যালেঞ্জ যেকোনো সময় রিভিউ ও প্র্যাকটিস করার সুবিধা)\n• KaTeX সমীকরণ ও ব্যাখ্যা প্রদর্শন উন্নতকরণ",
       releaseNotesEn:
-        "• Complete elimination of dummy/mock user data and placeholders\n• Real-time Firestore national leaderboard integration with authentic candidates\n• Dynamic verified questions connected to Live Quiz and Speed Drills\n• Performance and stability enhancements",
+        "• Fixed Daily Challenge result loading & score synchronization bug\n• Added 'Practice Again' feature allowing candidates to review and test anytime\n• KaTeX equations and Bengali explanations rendered smoothly",
       publishedAt: new Date().toISOString(),
     },
     {
