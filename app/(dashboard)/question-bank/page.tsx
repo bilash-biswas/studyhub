@@ -28,6 +28,9 @@ import {
   Filter,
   X,
   Sparkles,
+  Bookmark,
+  Printer,
+  SlidersHorizontal,
 } from "lucide-react";
 
 export default function QuestionBankStudyPage() {
@@ -46,7 +49,9 @@ export default function QuestionBankStudyPage() {
   const [selectedExamId, setSelectedExamId] = useState<string>("exam_bcs");
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>("");
   const [selectedBatchTag, setSelectedBatchTag] = useState<string>("");
+  const [selectedBatchEra, setSelectedBatchEra] = useState<"all" | "recent" | "classic">("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
+  const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Default state: Answers hidden for active self-testing, with a master switch
@@ -123,7 +128,7 @@ export default function QuestionBankStudyPage() {
         setSelectedSubjectId("");
 
         if (subs.length > 0) {
-          const counts = await getSubjectQuestionCounts(subs.map((s) => s.id), true);
+          const counts = await getSubjectQuestionCounts(subs.map((s) => s.id), false);
           setSubjectCounts(counts);
         } else {
           setSubjectCounts({});
@@ -146,14 +151,44 @@ export default function QuestionBankStudyPage() {
     return map;
   }, [subjects]);
 
+  // Filtered Batches based on Era Preset
+  const filteredBatches = useMemo(() => {
+    if (selectedBatchEra === "recent") {
+      return BCS_BATCHES.filter((b) => {
+        if (!b.id) return true;
+        const m = b.id.match(/^(\d+)/);
+        if (m) {
+          const num = parseInt(m[1], 10);
+          return num >= 40 && num <= 50;
+        }
+        return false;
+      });
+    }
+    if (selectedBatchEra === "classic") {
+      return BCS_BATCHES.filter((b) => {
+        if (!b.id) return true;
+        const m = b.id.match(/^(\d+)/);
+        if (m) {
+          const num = parseInt(m[1], 10);
+          return num >= 10 && num <= 39;
+        }
+        return false;
+      });
+    }
+    return BCS_BATCHES;
+  }, [selectedBatchEra]);
+
   // Active filters count
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (selectedSubjectId) count++;
     if (selectedBatchTag) count++;
+    if (selectedBatchEra !== "all") count++;
+    if (selectedDifficulty !== "all") count++;
+    if (bookmarkOnly) count++;
     if (searchQuery.trim()) count++;
     return count;
-  }, [selectedSubjectId, selectedBatchTag, searchQuery]);
+  }, [selectedSubjectId, selectedBatchTag, selectedBatchEra, selectedDifficulty, bookmarkOnly, searchQuery]);
 
   // 3. Fetch Questions Callback with Pagination
   const fetchQuestionsForPage = useCallback(
@@ -253,22 +288,52 @@ export default function QuestionBankStudyPage() {
   const handleResetFilters = () => {
     setSelectedSubjectId("");
     setSelectedBatchTag("");
+    setSelectedBatchEra("all");
     setSelectedDifficulty("all");
+    setBookmarkOnly(false);
     setSearchQuery("");
   };
 
-  // Client-side text search over current loaded results
+  // Helper to test if question belongs to a BCS era
+  const isQuestionInEra = (item: Question, era: "all" | "recent" | "classic") => {
+    if (era === "all") return true;
+    const textToCheck = `${item.source || ""} ${item.tags?.join(" ") || ""}`.toLowerCase();
+    const match = textToCheck.match(/(\d+)(?:st|nd|rd|th)?(?:-|\s)?bcs/);
+    if (!match) return true;
+    const bcsNum = parseInt(match[1], 10);
+    if (era === "recent") return bcsNum >= 40 && bcsNum <= 50;
+    if (era === "classic") return bcsNum >= 10 && bcsNum <= 39;
+    return true;
+  };
+
+  // Client-side text search and secondary filter evaluation over current loaded results
   const displayedQuestions = useMemo(() => {
-    if (!searchQuery.trim()) return questions;
-    const q = searchQuery.toLowerCase().trim();
-    return questions.filter((item) => {
-      const matchQ = item.question?.toLowerCase().includes(q);
-      const matchExp = item.explanation?.toLowerCase().includes(q);
-      const matchSource = item.source?.toLowerCase().includes(q);
-      const matchTag = item.tags?.some((t) => t.toLowerCase().includes(q));
-      return matchQ || matchExp || matchSource || matchTag;
-    });
-  }, [questions, searchQuery]);
+    let list = questions;
+
+    // Filter by Era preset if no specific batch tag is selected
+    if (!selectedBatchTag && selectedBatchEra !== "all") {
+      list = list.filter((item) => isQuestionInEra(item, selectedBatchEra));
+    }
+
+    // Filter by Bookmarks only
+    if (bookmarkOnly) {
+      list = list.filter((item) => bookmarkedIds.has(item.id));
+    }
+
+    // Client-side text search over current loaded results
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter((item) => {
+        const matchQ = item.question?.toLowerCase().includes(q);
+        const matchExp = item.explanation?.toLowerCase().includes(q);
+        const matchSource = item.source?.toLowerCase().includes(q);
+        const matchTag = item.tags?.some((t) => t.toLowerCase().includes(q));
+        return matchQ || matchExp || matchSource || matchTag;
+      });
+    }
+
+    return list;
+  }, [questions, selectedBatchTag, selectedBatchEra, bookmarkOnly, bookmarkedIds, searchQuery]);
 
   return (
     <div className="max-w-5xl w-full mx-auto space-y-4 pb-24">
@@ -298,8 +363,8 @@ export default function QuestionBankStudyPage() {
           </div>
         </div>
 
-        {/* Right Action Bar: Search, Density & Master Answer Toggle */}
-        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+        {/* Right Action Bar: Search, Density, Answer Mode & Print */}
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap print:hidden">
           {/* Density Toggle (Compact vs Detailed) */}
           <div className="flex items-center rounded-full border border-slate-200 dark:border-slate-800 p-0.5 bg-slate-100 dark:bg-slate-800 text-[11px] font-medium">
             <button
@@ -336,7 +401,7 @@ export default function QuestionBankStudyPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t("প্রশ্ন খুঁজুন...", "Search questions...")}
-              className="w-40 sm:w-52 focus:w-64 transition-all pl-8 pr-7 py-1.5 text-xs bg-slate-100 dark:bg-slate-800/80 border border-transparent focus:border-indigo-400 rounded-full text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none"
+              className="w-36 sm:w-48 focus:w-56 transition-all pl-8 pr-7 py-1.5 text-xs bg-slate-100 dark:bg-slate-800/80 border border-transparent focus:border-indigo-400 rounded-full text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none"
             />
             {searchQuery && (
               <button
@@ -349,149 +414,387 @@ export default function QuestionBankStudyPage() {
             )}
           </div>
 
-          {/* Reveal Answers Master Toggle */}
+          {/* Reveal Answers Master Switch with clear text label */}
           <button
             type="button"
             onClick={() => setAutoRevealAll((prev) => !prev)}
             title={
               autoRevealAll
-                ? t("সব উত্তর একবারে দৃশ্যমান রয়েছে", "All answers visible")
+                ? t("সব উত্তর দৃশ্যমান রয়েছে", "All answers visible")
                 : t("উত্তর লুকানো (অনুশীলন মোড)", "Answers hidden (Self-test mode)")
             }
-            className={`p-2 rounded-full border transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
               autoRevealAll
-                ? "bg-indigo-50 dark:bg-indigo-950/60 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400"
-                : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                ? "bg-indigo-50 dark:bg-indigo-950/70 border-indigo-300 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 shadow-2xs"
+                : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300"
             }`}
           >
-            {autoRevealAll ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+            {autoRevealAll ? (
+              <>
+                <Eye className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                <span>{t("সব উত্তর দৃশ্যমান", "All Answers Shown")}</span>
+              </>
+            ) : (
+              <>
+                <EyeOff className="h-3.5 w-3.5 text-slate-500" />
+                <span>{t("উত্তর লুকানো", "Answers Hidden")}</span>
+              </>
+            )}
+          </button>
+
+          {/* Print / PDF Study Sheet Export Button */}
+          <button
+            type="button"
+            onClick={() => window.print()}
+            title={t("প্রশ্ন তালিকা প্রিন্ট বা PDF হিসেবে সংরক্ষণ করুন", "Print or save questions as PDF")}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer"
+          >
+            <Printer className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+            <span className="hidden sm:inline">{t("প্রিন্ট / PDF", "Print / PDF")}</span>
           </button>
         </div>
       </div>
 
-      {/* 2. Single Slim 44px Quick-Filter Strip */}
-      <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-2 shadow-2xs flex items-center gap-2">
-        {/* Fixed BCS Batch Selector Pill */}
-        {selectedExamId === "exam_bcs" && (
-          <div className="shrink-0">
-            <select
-              value={selectedBatchTag}
-              onChange={(e) => setSelectedBatchTag(e.target.value)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${
-                selectedBatchTag
-                  ? "bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-transparent hover:border-slate-300"
-              }`}
-            >
-              {BCS_BATCHES.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {lang === "bn" ? b.labelBn : b.labelEn}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {/* Vertical Divider */}
-        <div className="h-5 w-px bg-slate-200 dark:bg-slate-800 shrink-0" />
-
-        {/* Left Scroll Chevron Button */}
-        <button
-          type="button"
-          onClick={() => scrollSubjects("left")}
-          disabled={!canScrollLeft}
-          title={t("বামে স্ক্রল করুন", "Scroll left")}
-          className={`p-1.5 rounded-full shrink-0 transition-all ${
-            canScrollLeft
-              ? "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-              : "text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-30"
-          }`}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-
-        {/* Smooth Horizontal Scrollable Subjects Container */}
-        <div
-          ref={subjectsScrollRef}
-          onScroll={checkScroll}
-          onWheel={handleSubjectsWheel}
-          className="flex-1 flex items-center gap-1.5 overflow-x-auto scroll-smooth py-1 custom-scrollbar"
-        >
-          {/* All Subjects Pill */}
-          <button
-            type="button"
-            onClick={() => setSelectedSubjectId("")}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
-              selectedSubjectId === ""
-                ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-2xs"
-                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-            }`}
-          >
-            <span>{t("সব বিষয়", "All Subjects")}</span>
-          </button>
-
-          {/* Per-Subject Pills with Live Counts */}
-          {subjects.map((sub) => {
-            const count = subjectCounts[sub.id];
-            const isSelected = selectedSubjectId === sub.id;
-
-            return (
-              <button
-                key={sub.id}
-                type="button"
-                onClick={() => setSelectedSubjectId(sub.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
-                  isSelected
-                    ? "bg-[#4F46E5] text-white font-semibold shadow-2xs"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+      {/* 2. Primary Filter Strip: Batch Era Presets, Batch Select, & Horizontal Subject Strip */}
+      <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-2 shadow-2xs space-y-2 print:hidden">
+        <div className="flex items-center gap-2">
+          {/* Fixed BCS Batch Selector Pill */}
+          {selectedExamId === "exam_bcs" && (
+            <div className="shrink-0 flex items-center gap-1.5">
+              <select
+                value={selectedBatchTag}
+                onChange={(e) => setSelectedBatchTag(e.target.value)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${
+                  selectedBatchTag
+                    ? "bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-transparent hover:border-slate-300"
                 }`}
               >
-                <span>{sub.name}</span>
-                {typeof count === "number" && count > 0 && (
-                  <span
-                    className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
-                      isSelected
-                        ? "bg-white/20 text-white"
-                        : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
-                    }`}
-                  >
-                    {n(count)}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+                {filteredBatches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {lang === "bn" ? b.labelBn : b.labelEn}
+                  </option>
+                ))}
+              </select>
+
+              {/* Era Quick Presets (Small chips) */}
+              <div className="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-full text-[11px]">
+                <button
+                  type="button"
+                  onClick={() => setSelectedBatchEra("all")}
+                  className={`px-2 py-0.5 rounded-full transition-all cursor-pointer ${
+                    selectedBatchEra === "all"
+                      ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-semibold"
+                      : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                  }`}
+                >
+                  {t("সব", "All")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedBatchEra("recent")}
+                  className={`px-2 py-0.5 rounded-full transition-all cursor-pointer ${
+                    selectedBatchEra === "recent"
+                      ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-semibold"
+                      : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                  }`}
+                >
+                  {t("৪০–৫০তম", "40th-50th")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedBatchEra("classic")}
+                  className={`px-2 py-0.5 rounded-full transition-all cursor-pointer ${
+                    selectedBatchEra === "classic"
+                      ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-semibold"
+                      : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                  }`}
+                >
+                  {t("১০–৩৯তম", "10th-39th")}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Vertical Divider */}
+          <div className="h-5 w-px bg-slate-200 dark:bg-slate-800 shrink-0" />
+
+          {/* Left Scroll Chevron Button */}
+          <button
+            type="button"
+            onClick={() => scrollSubjects("left")}
+            disabled={!canScrollLeft}
+            title={t("বামে স্ক্রল করুন", "Scroll left")}
+            className={`p-1.5 rounded-full shrink-0 transition-all ${
+              canScrollLeft
+                ? "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                : "text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-30"
+            }`}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+
+          {/* Smooth Horizontal Scrollable Subjects Container */}
+          <div
+            ref={subjectsScrollRef}
+            onScroll={checkScroll}
+            onWheel={handleSubjectsWheel}
+            className="flex-1 flex items-center gap-1.5 overflow-x-auto scroll-smooth py-1 custom-scrollbar"
+          >
+            {/* All Subjects Pill */}
+            <button
+              type="button"
+              onClick={() => setSelectedSubjectId("")}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
+                selectedSubjectId === ""
+                  ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-2xs"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+              }`}
+            >
+              <span>{t("সব বিষয়", "All Subjects")}</span>
+              {totalExamQuestionCount > 0 && (
+                <span
+                  className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
+                    selectedSubjectId === ""
+                      ? "bg-white/20 text-white dark:bg-slate-900/20 dark:text-slate-900"
+                      : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                  }`}
+                >
+                  {n(totalExamQuestionCount)}
+                </span>
+              )}
+            </button>
+
+            {/* Per-Subject Pills with Live Counts */}
+            {subjects.map((sub) => {
+              const count = subjectCounts[sub.id];
+              const isSelected = selectedSubjectId === sub.id;
+
+              return (
+                <button
+                  key={sub.id}
+                  type="button"
+                  onClick={() => setSelectedSubjectId(sub.id)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
+                    isSelected
+                      ? "bg-[#4F46E5] text-white font-semibold shadow-2xs"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                  }`}
+                >
+                  <span>{sub.name}</span>
+                  {typeof count === "number" && count > 0 && (
+                    <span
+                      className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
+                        isSelected
+                          ? "bg-white/20 text-white"
+                          : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                      }`}
+                    >
+                      {n(count)}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right Scroll Chevron Button */}
+          <button
+            type="button"
+            onClick={() => scrollSubjects("right")}
+            disabled={!canScrollRight}
+            title={t("ডানে স্ক্রল করুন", "Scroll right")}
+            className={`p-1.5 rounded-full shrink-0 transition-all ${
+              canScrollRight
+                ? "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                : "text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-30"
+            }`}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* 3. Secondary Multi-Criteria Strip: Difficulty & Bookmarks */}
+      <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-2 sm:px-3 shadow-2xs flex flex-wrap items-center justify-between gap-2.5 print:hidden">
+        {/* Left: Difficulty Segmented Control */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 text-xs">
+            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+              {t("লেভেল:", "Level:")}
+            </span>
+            <div className="flex items-center rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 p-0.5 text-xs font-medium">
+              {[
+                { id: "all", labelBn: "সব লেভেল", labelEn: "All" },
+                { id: "easy", labelBn: "সহজ", labelEn: "Easy" },
+                { id: "medium", labelBn: "মাঝারি", labelEn: "Medium" },
+                { id: "hard", labelBn: "কঠিন", labelEn: "Hard" },
+              ].map((lvl) => (
+                <button
+                  key={lvl.id}
+                  type="button"
+                  onClick={() => setSelectedDifficulty(lvl.id)}
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                    selectedDifficulty === lvl.id
+                      ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-semibold"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+                >
+                  {lang === "bn" ? lvl.labelBn : lvl.labelEn}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block" />
+
+          {/* Bookmark-Only Quick Toggle */}
+          <button
+            type="button"
+            onClick={() => setBookmarkOnly((prev) => !prev)}
+            title={t("শুধুমাত্র আপনার বুকমার্ককৃত প্রশ্নগুলি দেখুন", "Show only your bookmarked questions")}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+              bookmarkOnly
+                ? "bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 shadow-2xs"
+                : "bg-slate-100 dark:bg-slate-800/80 border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+            }`}
+          >
+            <Bookmark className={`h-3.5 w-3.5 ${bookmarkOnly ? "fill-amber-500 text-amber-500" : "text-slate-400"}`} />
+            <span>{t("বুকমার্ককৃত", "Bookmarked")}</span>
+            {bookmarkedIds.size > 0 && (
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  bookmarkOnly
+                    ? "bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200"
+                    : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
+                }`}
+              >
+                {n(bookmarkedIds.size)}
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* Right Scroll Chevron Button */}
-        <button
-          type="button"
-          onClick={() => scrollSubjects("right")}
-          disabled={!canScrollRight}
-          title={t("ডানে স্ক্রল করুন", "Scroll right")}
-          className={`p-1.5 rounded-full shrink-0 transition-all ${
-            canScrollRight
-              ? "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-              : "text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-30"
-          }`}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
+        {/* Right: Quick Era Tabs for Mobile/Tablet */}
+        <div className="flex md:hidden items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-lg text-[11px]">
+          <button
+            type="button"
+            onClick={() => setSelectedBatchEra("all")}
+            className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
+              selectedBatchEra === "all"
+                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-semibold"
+                : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+            }`}
+          >
+            {t("সব", "All")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedBatchEra("recent")}
+            className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
+              selectedBatchEra === "recent"
+                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-semibold"
+                : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+            }`}
+          >
+            {t("৪০–৫০তম", "40th-50th")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedBatchEra("classic")}
+            className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
+              selectedBatchEra === "classic"
+                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-semibold"
+                : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+            }`}
+          >
+            {t("১০–৩৯তম", "10th-39th")}
+          </button>
+        </div>
+      </div>
 
-        {/* Reset Filter Button (if active) */}
-        {activeFiltersCount > 0 && (
+      {/* 4. Active Filters Summary Bar */}
+      {activeFiltersCount > 0 && (
+        <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-xs print:hidden">
+          <div className="flex items-center gap-1.5 flex-wrap text-slate-700 dark:text-slate-300">
+            <Filter className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+            <span className="font-semibold text-slate-900 dark:text-slate-100">
+              {t("দেখাচ্ছে:", "Showing:")}
+            </span>
+            {selectedBatchTag && (
+              <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 font-medium">
+                {BCS_BATCHES.find((b) => b.id === selectedBatchTag)?.labelBn || selectedBatchTag}
+              </span>
+            )}
+            {selectedBatchEra !== "all" && !selectedBatchTag && (
+              <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 font-medium">
+                {selectedBatchEra === "recent"
+                  ? t("সাম্প্রতিক ৪০–৫০তম বিসিএস", "Recent 40th–50th BCS")
+                  : t("বিগত ১০–৩৯তম বিসিএস", "Past 10th–39th BCS")}
+              </span>
+            )}
+            {selectedSubjectId && (
+              <span className="px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 font-medium">
+                {subjectMap.get(selectedSubjectId) || selectedSubjectId}
+              </span>
+            )}
+            {selectedDifficulty !== "all" && (
+              <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 font-medium">
+                {selectedDifficulty === "easy"
+                  ? t("সহজ লেভেল", "Easy Level")
+                  : selectedDifficulty === "medium"
+                  ? t("মাঝারি লেভেল", "Medium Level")
+                  : t("কঠিন লেভেল", "Hard Level")}
+              </span>
+            )}
+            {bookmarkOnly && (
+              <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 font-medium">
+                {t("⭐ সংরক্ষিত", "⭐ Saved")}
+              </span>
+            )}
+            {searchQuery.trim() && (
+              <span className="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-medium">
+                "{searchQuery.trim()}"
+              </span>
+            )}
+            <span className="text-slate-400">•</span>
+            <span className="font-bold text-slate-900 dark:text-slate-100">
+              {t(`${n(displayedQuestions.length)}টি প্রশ্ন`, `${displayedQuestions.length} questions`)}
+            </span>
+          </div>
+
           <button
             type="button"
             onClick={handleResetFilters}
-            className="px-2.5 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all flex items-center gap-1 bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 hover:bg-rose-100 cursor-pointer"
+            className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer shrink-0"
           >
             <RotateCcw className="h-3 w-3" />
-            <span>{t("রিসেট", "Reset")}</span>
+            <span>{t("রিসেট ✕", "Reset ✕")}</span>
           </button>
-        )}
+        </div>
+      )}
+
+      {/* 5. Printable Header (Shown ONLY during print / PDF export) */}
+      <div className="hidden print:block mb-6 border-b border-black pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-black">মেধাবী • প্রশ্ন ব্যাংক স্টাডি শিট</h1>
+            <p className="text-sm text-gray-700">
+              {selectedBatchTag
+                ? BCS_BATCHES.find((b) => b.id === selectedBatchTag)?.labelBn || selectedBatchTag
+                : "বিসিএস প্রিলিমিনারি প্রশ্ন ব্যাংক"}
+              {selectedSubjectId ? ` • ${subjectMap.get(selectedSubjectId)}` : ""}
+            </p>
+          </div>
+          <div className="text-right text-xs text-gray-600">
+            <p>প্রিন্টের তারিখ: {new Date().toLocaleDateString("bn-BD")}</p>
+            <p>মোট প্রশ্ন: {displayedQuestions.length}টি</p>
+          </div>
+        </div>
       </div>
 
-      {/* 3. Study Question Cards Stream */}
+      {/* 6. Study Question Cards Stream */}
       {loading ? (
         <QuestionCardSkeleton count={4} density={density} />
       ) : displayedQuestions.length === 0 ? (

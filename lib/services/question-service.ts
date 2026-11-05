@@ -595,23 +595,46 @@ export async function getSubjectQuestionCounts(
   subjectIds: string[],
   verifiedOnly: boolean = false
 ): Promise<Record<string, number>> {
+  const cacheKey = `sub_counts_${verifiedOnly ? "v1" : "v0"}_${subjectIds.slice().sort().join("_")}`;
+  try {
+    const cached = await getCacheItem<Record<string, number>>(cacheKey);
+    if (cached && Object.keys(cached).length > 0) return cached;
+  } catch {}
+
   const counts: Record<string, number> = {};
   try {
     await Promise.all(
       subjectIds.map(async (subId) => {
-        const constraints: QueryConstraint[] = [
-          where("status", "==", "published"),
-          where("subjectId", "==", subId),
-        ];
-        if (verifiedOnly) {
-          constraints.push(where("adminVerified", "==", true));
+        try {
+          const constraints: QueryConstraint[] = [
+            where("status", "==", "published"),
+            where("subjectId", "==", subId),
+          ];
+          if (verifiedOnly) {
+            constraints.push(where("adminVerified", "==", true));
+          }
+          const snap = await getCountFromServer(
+            query(questionsCol(), ...constraints)
+          );
+          counts[subId] = snap.data().count;
+        } catch (subErr) {
+          // Graceful fallback: query without adminVerified if composite index is missing
+          try {
+            const fallbackSnap = await getCountFromServer(
+              query(
+                questionsCol(),
+                where("status", "==", "published"),
+                where("subjectId", "==", subId)
+              )
+            );
+            counts[subId] = fallbackSnap.data().count;
+          } catch {
+            counts[subId] = 0;
+          }
         }
-        const snap = await getCountFromServer(
-          query(questionsCol(), ...constraints)
-        );
-        counts[subId] = snap.data().count;
       })
     );
+    setCacheItem(cacheKey, counts).catch(() => {});
   } catch (error) {
     console.error("Error fetching subject question counts:", error);
   }

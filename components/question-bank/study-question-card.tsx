@@ -153,7 +153,7 @@ export function StudyQuestionCard({
     <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
       {/* 1. Quiet Header (Metadata + Actions) */}
       <div className="flex items-center justify-between gap-3 mb-3">
-        <div className="flex flex-wrap items-center gap-2 text-xs">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           {/* Question Index Badge */}
           <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
             {t(`প্রশ্ন ${n(index + 1)}`, `Q. ${index + 1}`)}
@@ -161,58 +161,46 @@ export function StudyQuestionCard({
 
           {/* Source / Batch */}
           {sourceLabel && (
-            <>
-              <span className="text-slate-300 dark:text-slate-700 text-[10px]">•</span>
-              <span className="font-semibold text-indigo-600 dark:text-indigo-400">
-                {sourceLabel}
-              </span>
-            </>
+            <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-indigo-50/80 dark:bg-indigo-950/60 text-[#4F46E5] dark:text-[#818CF8] border border-indigo-100/80 dark:border-indigo-900/50">
+              {sourceLabel}
+            </span>
           )}
 
           {/* Subject */}
           {subjectName && (
-            <>
-              <span className="text-slate-300 dark:text-slate-700 text-[10px]">•</span>
-              <span className="text-slate-500 dark:text-slate-400">
-                {subjectName}
-              </span>
-            </>
+            <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-purple-50/80 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-100/80 dark:border-purple-900/50">
+              {subjectName}
+            </span>
           )}
 
           {/* Difficulty */}
           {question.difficulty && (
-            <>
-              <span className="text-slate-300 dark:text-slate-700 text-[10px]">•</span>
-              <span
-                className={`font-semibold ${
-                  question.difficulty === "easy"
-                    ? "text-emerald-600 dark:text-emerald-400"
-                    : question.difficulty === "hard"
-                    ? "text-rose-600 dark:text-rose-400"
-                    : "text-amber-600 dark:text-amber-400"
-                }`}
-              >
-                {question.difficulty === "easy"
-                  ? t("সহজ", "Easy")
-                  : question.difficulty === "medium"
-                  ? t("মধ্যম", "Medium")
-                  : t("কঠিন", "Hard")}
-              </span>
-            </>
+            <span
+              className={`text-[11px] font-medium px-2 py-0.5 rounded-md border ${
+                question.difficulty === "easy"
+                  ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-900/60"
+                  : question.difficulty === "hard"
+                  ? "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200/60 dark:border-rose-900/60"
+                  : "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200/60 dark:border-amber-900/60"
+              }`}
+            >
+              {question.difficulty === "easy"
+                ? t("সহজ", "Easy")
+                : question.difficulty === "medium"
+                ? t("মাঝারি", "Medium")
+                : t("কঠিন", "Hard")}
+            </span>
           )}
 
           {/* Admin Verified */}
           {question.adminVerified && (
-            <>
-              <span className="text-slate-300 dark:text-slate-700 text-[10px]">•</span>
-              <span
-                title={t("বিসিএস বিশেষজ্ঞ প্যানেল দ্বারা পরীক্ষিত ও নির্ভুল", "Verified by Admin Panel")}
-                className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400"
-              >
-                <ShieldCheck className="h-3.5 w-3.5" />
-                <span>{t("ভেরিফাইড", "Verified")}</span>
-              </span>
-            </>
+            <span
+              title={t("বিসিএস বিশেষজ্ঞ প্যানেল দ্বারা পরীক্ষিত ও নির্ভুল", "Verified by Admin Panel")}
+              className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-900/60"
+            >
+              <ShieldCheck className="h-3 w-3" />
+              <span>{t("ভেরিফাইড", "Verified")}</span>
+            </span>
           )}
         </div>
 
@@ -297,23 +285,23 @@ export function StudyQuestionCard({
           const isSelected = selectedOptionId === option.id;
 
           let optionStyle =
-            "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 text-slate-800 dark:text-slate-200 hover:border-indigo-300 dark:hover:border-indigo-700 hover:bg-indigo-50/20";
+            "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-200 hover:border-indigo-400 dark:hover:border-indigo-600/70 hover:bg-indigo-50/30 dark:hover:bg-indigo-950/30";
           let badgeStyle =
-            "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
+            "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-semibold";
 
           if (isRevealed) {
             if (isCorrect) {
               optionStyle =
-                "border-emerald-500 dark:border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 font-medium";
-              badgeStyle = "bg-emerald-600 text-white font-bold";
+                "border-emerald-500 dark:border-emerald-500/80 bg-emerald-50/90 dark:bg-emerald-950/50 text-emerald-950 dark:text-emerald-100 font-medium";
+              badgeStyle = "bg-emerald-600 text-white font-bold border-transparent";
             } else if (isSelected && !isCorrect) {
               optionStyle =
-                "border-rose-400 dark:border-rose-700 bg-rose-50/80 dark:bg-rose-950/40 text-rose-900 dark:text-rose-100";
-              badgeStyle = "bg-rose-600 text-white font-bold";
+                "border-rose-400 dark:border-rose-700 bg-rose-50/90 dark:bg-rose-950/50 text-rose-950 dark:text-rose-100";
+              badgeStyle = "bg-rose-600 text-white font-bold border-transparent";
             } else {
               optionStyle =
                 "opacity-60 border-slate-200 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/20 text-slate-600 dark:text-slate-400";
-              badgeStyle = "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400";
+              badgeStyle = "bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800";
             }
           }
 
@@ -322,15 +310,15 @@ export function StudyQuestionCard({
               key={option.id}
               type="button"
               onClick={() => handleOptionClick(option.id)}
-              className={`w-full text-left p-3 rounded-xl border text-xs sm:text-sm flex items-start gap-3 transition-all cursor-pointer ${optionStyle}`}
+              className={`w-full text-left p-3 sm:p-3.5 rounded-xl border text-xs sm:text-sm flex items-start gap-3 transition-all cursor-pointer ${optionStyle}`}
             >
               <span
-                className={`h-5 w-5 rounded-full flex items-center justify-center text-[11px] shrink-0 transition-colors mt-0.5 ${badgeStyle}`}
+                className={`h-6 w-6 rounded-lg flex items-center justify-center text-xs shrink-0 transition-colors mt-0.5 ${badgeStyle}`}
               >
                 {isRevealed && isCorrect ? (
-                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  <CheckCircle2 className="h-4 w-4" />
                 ) : isRevealed && isSelected && !isCorrect ? (
-                  <XCircle className="h-3.5 w-3.5" />
+                  <XCircle className="h-4 w-4" />
                 ) : (
                   letter
                 )}
