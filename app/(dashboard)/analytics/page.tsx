@@ -11,6 +11,7 @@ import {
 } from "@/lib/services/analytics-service";
 import { formatTimer } from "@/lib/calculations/timer";
 import { ClassifiedArea } from "@/lib/calculations/weakness";
+import { AnalyticsSkeleton } from "@/components/ui/skeletons";
 import { Button } from "@/components/ui/button";
 import {
   BarChart3,
@@ -78,14 +79,7 @@ export default function AnalyticsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
-          <p className="text-xs text-slate-500 font-medium">Analyzing practice data & diagnostics...</p>
-        </div>
-      </div>
-    );
+    return <AnalyticsSkeleton />;
   }
 
   const {

@@ -12,6 +12,7 @@ import {
 import { recordAttempt } from "@/lib/services/attempt-service";
 import { useAuth } from "@/hooks/useAuth";
 import { ExamRunner } from "@/components/exams/exam-runner";
+import { QuestionCardSkeleton } from "@/components/ui/skeletons";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 
@@ -105,11 +106,15 @@ export default function TimedExamPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
-          <p className="text-xs text-slate-500 font-medium">Preparing timed examination session...</p>
+      <div className="max-w-3xl mx-auto space-y-4" role="status" aria-label="Preparing timed examination session">
+        <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between">
+          <div className="space-y-1.5">
+            <div className="h-5 w-48 rounded-lg bg-slate-200/80 dark:bg-slate-800/80 shimmer-wave" />
+            <div className="h-3.5 w-32 rounded-md bg-slate-200/80 dark:bg-slate-800/80 shimmer-wave" />
+          </div>
+          <div className="h-8 w-20 rounded-lg bg-slate-200/80 dark:bg-slate-800/80 shimmer-wave" />
         </div>
+        <QuestionCardSkeleton count={1} />
       </div>
     );
   }

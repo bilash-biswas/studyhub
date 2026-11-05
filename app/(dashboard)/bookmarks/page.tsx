@@ -15,6 +15,7 @@ import { getQuestionsByIds } from "@/lib/services/question-service";
 import { getExams } from "@/lib/services/exam-service";
 import { getSubjects } from "@/lib/services/subject-service";
 import { StudyQuestionCard } from "@/components/question-bank/study-question-card";
+import { QuestionCardSkeleton } from "@/components/ui/skeletons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -139,11 +140,14 @@ export default function BookmarksPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
-          <p className="text-xs text-slate-500 font-medium">Loading your Bookmarks...</p>
+      <div className="w-full space-y-6 pb-20" role="status" aria-label="Loading bookmarks">
+        <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <div className="h-6 w-44 rounded-lg bg-slate-200/80 dark:bg-slate-800/80 shimmer-wave" />
+            <div className="h-4 w-64 rounded-md bg-slate-200/80 dark:bg-slate-800/80 shimmer-wave" />
+          </div>
         </div>
+        <QuestionCardSkeleton count={3} />
       </div>
     );
   }

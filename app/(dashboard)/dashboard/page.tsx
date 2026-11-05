@@ -17,6 +17,7 @@ import {
 import { Attempt, Exam, Subject, AppNotification } from "@/types";
 import { calculateAccuracy } from "@/lib/calculations/accuracy";
 import { evaluateActiveStreak } from "@/lib/calculations/streak";
+import { DashboardSkeleton } from "@/components/ui/skeletons";
 import { Button } from "@/components/ui/button";
 import {
   Sparkles,
@@ -94,16 +95,7 @@ export default function DashboardPage() {
   );
 
   if (loading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
-          <p className="text-xs text-slate-500 font-medium">
-            {t("ড্যাশবোর্ড লোড হচ্ছে...", "Loading your dashboard...")}
-          </p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (

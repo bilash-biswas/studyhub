@@ -21,6 +21,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { DashboardShellSkeleton } from "@/components/ui/skeletons";
 
 export default function AdminLayout({
   children,
@@ -43,14 +44,7 @@ export default function AdminLayout({
   ];
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0F172A]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
-          <p className="text-xs text-slate-500 font-medium">Verifying administrator permissions...</p>
-        </div>
-      </div>
-    );
+    return <DashboardShellSkeleton />;
   }
 
   // If user is not an administrator, prevent access

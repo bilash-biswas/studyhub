@@ -26,6 +26,7 @@ import { useLanguage } from "@/lib/context/language-context";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LanguageToggle } from "@/components/ui/language-toggle";
 import { NotificationBell } from "@/components/layout/notification-bell";
+import { DashboardShellSkeleton } from "@/components/ui/skeletons";
 
 export default function DashboardLayout({
   children,
@@ -106,16 +107,7 @@ export default function DashboardLayout({
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0F172A]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
-          <p className="text-xs text-slate-500 font-medium">
-            {t("মেধাবী ওয়ার্কস্পেস লোড হচ্ছে...", "Loading Medhavi workspace...")}
-          </p>
-        </div>
-      </div>
-    );
+    return <DashboardShellSkeleton />;
   }
 
   if (!user && !isGuestAllowedRoute) {

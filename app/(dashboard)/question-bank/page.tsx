@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/lib/context/language-context";
 import { BCS_BATCHES } from "@/lib/constants/bcs-batches";
 import { StudyQuestionCard } from "@/components/question-bank/study-question-card";
+import { QuestionCardSkeleton } from "@/components/ui/skeletons";
 import { Button } from "@/components/ui/button";
 import { DocumentSnapshot } from "firebase/firestore";
 import {
@@ -492,26 +493,7 @@ export default function QuestionBankStudyPage() {
 
       {/* 3. Study Question Cards Stream */}
       {loading ? (
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-6 animate-pulse space-y-4"
-            >
-              <div className="flex gap-2">
-                <div className="h-5 w-16 bg-slate-200 dark:bg-slate-800 rounded-md" />
-                <div className="h-5 w-28 bg-slate-200 dark:bg-slate-800 rounded-md" />
-              </div>
-              <div className="h-6 w-3/4 bg-slate-200 dark:bg-slate-800 rounded-md" />
-              <div className="space-y-2 pt-2">
-                <div className="h-9 w-full bg-slate-100 dark:bg-slate-800/60 rounded-lg" />
-                <div className="h-9 w-full bg-slate-100 dark:bg-slate-800/60 rounded-lg" />
-                <div className="h-9 w-full bg-slate-100 dark:bg-slate-800/60 rounded-lg" />
-                <div className="h-9 w-full bg-slate-100 dark:bg-slate-800/60 rounded-lg" />
-              </div>
-            </div>
-          ))}
-        </div>
+        <QuestionCardSkeleton count={4} density={density} />
       ) : displayedQuestions.length === 0 ? (
         <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center space-y-3">
           <BookOpen className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto" />

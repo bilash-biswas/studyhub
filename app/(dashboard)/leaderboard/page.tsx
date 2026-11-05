@@ -6,6 +6,7 @@ import { LeaderboardEntry, LeaderboardPeriod } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/lib/context/language-context";
 import { getLeaderboard } from "@/lib/services/leaderboard-service";
+import { LeaderboardSkeleton } from "@/components/ui/skeletons";
 import { Button } from "@/components/ui/button";
 import {
   Trophy,
@@ -110,12 +111,7 @@ export default function LeaderboardPage() {
       </div>
 
       {loading ? (
-        <div className="min-h-[350px] flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="h-8 w-8 rounded-full border-2 border-amber-600 border-t-transparent animate-spin" />
-            <p className="text-xs text-slate-500 font-medium">Fetching candidate scores...</p>
-          </div>
-        </div>
+        <LeaderboardSkeleton inlineOnly />
       ) : entries.length === 0 ? (
         <div className="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center space-y-3">
           <div className="h-12 w-12 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-600 mx-auto flex items-center justify-center">

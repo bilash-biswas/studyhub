@@ -10,6 +10,7 @@ import {
 import { getExams } from "@/lib/services/exam-service";
 import { getQuestions } from "@/lib/services/question-service";
 import { useLanguage } from "@/lib/context/language-context";
+import { ExamCatalogSkeleton } from "@/components/ui/skeletons";
 import { Button } from "@/components/ui/button";
 import {
   Timer,
@@ -86,14 +87,7 @@ export default function MockExamsCatalogPage() {
     });
 
   if (loading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
-          <p className="text-xs text-slate-500 font-medium">Loading competitive mock tests...</p>
-        </div>
-      </div>
-    );
+    return <ExamCatalogSkeleton />;
   }
 
   return (

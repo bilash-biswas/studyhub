@@ -14,6 +14,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { ScoreSummaryCard } from "@/components/results/score-summary-card";
 import { QuestionReviewItem } from "@/components/results/question-review-item";
+import { QuestionCardSkeleton } from "@/components/ui/skeletons";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
@@ -154,11 +155,22 @@ export default function AttemptResultsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[500px] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin" />
-          <p className="text-xs text-slate-500 font-medium">Generating performance report & solutions...</p>
+      <div className="max-w-4xl mx-auto space-y-6" role="status" aria-label="Loading performance report">
+        <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="space-y-2 text-center sm:text-left">
+              <div className="h-6 w-48 rounded-lg bg-slate-200/80 dark:bg-slate-800/80 shimmer-wave" />
+              <div className="h-4 w-32 rounded-md bg-slate-200/80 dark:bg-slate-800/80 shimmer-wave" />
+            </div>
+            <div className="h-20 w-20 rounded-full bg-slate-200/80 dark:bg-slate-800/80 shimmer-wave" />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800/60 shimmer-wave" />
+            ))}
+          </div>
         </div>
+        <QuestionCardSkeleton count={2} />
       </div>
     );
   }
