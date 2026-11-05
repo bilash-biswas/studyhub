@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Mail,
   Lock,
@@ -29,8 +29,10 @@ import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/firestore";
 import { auth } from "@/lib/firebase/auth";
 
-export default function RegisterPage() {
+function RegisterFormContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect") || "/dashboard";
   const { signUpWithEmail, signInWithGoogle, user, loading } = useAuth();
   const { t } = useLanguage();
 
@@ -47,9 +49,9 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace("/dashboard");
+      router.replace(redirectUrl);
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, redirectUrl]);
 
   const passwordsMatch =
     confirmPassword.length > 0 && password === confirmPassword;
@@ -108,7 +110,7 @@ export default function RegisterPage() {
       } catch {
         // non-blocking
       }
-      router.push("/dashboard");
+      router.push(redirectUrl);
     }
   };
 
@@ -123,7 +125,7 @@ export default function RegisterPage() {
       );
       setIsGoogleLoading(false);
     } else {
-      router.push("/dashboard");
+      router.push(redirectUrl);
     }
   };
 
@@ -354,7 +356,7 @@ export default function RegisterPage() {
         <p className="text-sm text-slate-600 dark:text-slate-400">
           {t("ইতিমধ্যে অ্যাকাউন্ট আছে?", "Already have an account?")}{" "}
           <Link
-            href="/login"
+            href={redirectUrl !== "/dashboard" ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login"}
             className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
           >
             {t("লগইন করুন", "Sign in")}
@@ -362,5 +364,17 @@ export default function RegisterPage() {
         </p>
       </CardFooter>
     </Card>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-96 rounded-xl bg-slate-100 dark:bg-slate-800/50 animate-pulse" />
+      }
+    >
+      <RegisterFormContent />
+    </Suspense>
   );
 }

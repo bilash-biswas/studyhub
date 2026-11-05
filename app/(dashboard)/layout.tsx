@@ -53,9 +53,10 @@ export default function DashboardLayout({
   // Auth Protection: If not logged in and done loading, redirect to login (except guest allowed routes)
   useEffect(() => {
     if (!loading && !user && !isGuestAllowedRoute) {
-      router.push("/login");
+      const redirectParam = pathname ? `?redirect=${encodeURIComponent(pathname)}` : "";
+      router.push(`/login${redirectParam}`);
     }
-  }, [user, loading, router, isGuestAllowedRoute]);
+  }, [user, loading, router, isGuestAllowedRoute, pathname]);
 
   // Scroll listener for LinkedIn-style mobile navigation hide/show
   useEffect(() => {

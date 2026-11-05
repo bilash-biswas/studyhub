@@ -213,7 +213,7 @@ function LoginFormContent() {
         <p className="text-sm text-slate-600 dark:text-slate-400">
           {t("এখনো কোনো অ্যাকাউন্ট নেই?", "Don't have an account?")}{" "}
           <Link
-            href="/register"
+            href={redirectUrl !== "/dashboard" ? `/register?redirect=${encodeURIComponent(redirectUrl)}` : "/register"}
             className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
           >
             {t("নতুন অ্যাকাউন্ট খুলুন", "Create one")}

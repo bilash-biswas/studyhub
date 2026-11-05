@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Question, Exam, Subject } from "@/types";
 import {
   getQuestions,
@@ -40,6 +41,7 @@ import {
 } from "lucide-react";
 
 export default function QuestionBankStudyPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const { lang, t, n } = useLanguage();
 
@@ -115,7 +117,18 @@ export default function QuestionBankStudyPage() {
 
         if (user) {
           const bIds = await getUserBookmarkIds(user.uid);
-          setBookmarkedIds(new Set(bIds));
+          const bookmarkSet = new Set(bIds);
+          try {
+            const pendingId = sessionStorage.getItem("pending_bookmark_id");
+            if (pendingId) {
+              sessionStorage.removeItem("pending_bookmark_id");
+              await toggleBookmark(user.uid, pendingId);
+              bookmarkSet.add(pendingId);
+            }
+          } catch {
+            // non-blocking
+          }
+          setBookmarkedIds(bookmarkSet);
         }
       } catch (err) {
         console.error("Error initializing question bank:", err);
@@ -283,7 +296,12 @@ export default function QuestionBankStudyPage() {
   // Bookmark Toggle Handler
   const handleToggleBookmark = async (questionId: string) => {
     if (!user) {
-      alert(t("বুকমার্ক করতে অনুগ্রহ করে লগইন করুন।", "Please sign in to bookmark questions."));
+      try {
+        sessionStorage.setItem("pending_bookmark_id", questionId);
+      } catch {
+        // non-blocking
+      }
+      router.push(`/login?redirect=${encodeURIComponent("/question-bank")}`);
       return;
     }
 
@@ -686,7 +704,13 @@ export default function QuestionBankStudyPage() {
           {/* Bookmark-Only Quick Toggle */}
           <button
             type="button"
-            onClick={() => setBookmarkOnly((prev) => !prev)}
+            onClick={() => {
+              if (!user) {
+                router.push(`/login?redirect=${encodeURIComponent("/question-bank")}`);
+                return;
+              }
+              setBookmarkOnly((prev) => !prev);
+            }}
             title={t("শুধুমাত্র আপনার বুকমার্ককৃত প্রশ্নগুলি দেখুন", "Show only your bookmarked questions")}
             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
               bookmarkOnly
