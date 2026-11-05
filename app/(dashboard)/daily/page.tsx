@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import confetti from "canvas-confetti";
 import { Question, DailyChallenge, AttemptAnswer } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -11,7 +12,9 @@ import {
 } from "@/lib/services/daily-challenge-service";
 import { recordAttempt } from "@/lib/services/attempt-service";
 import { getEffectiveUserStreak, getFormattedDate } from "@/lib/calculations/streak";
-import { QuestionRunner } from "@/components/practice/question-runner";
+import { DailyRunner } from "@/components/daily/daily-runner";
+import { StreakWeekTracker } from "@/components/daily/streak-week-tracker";
+import { DailyQuestionReview } from "@/components/daily/daily-question-review";
 import { QuestionCardSkeleton } from "@/components/ui/skeletons";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +22,6 @@ import {
   Trophy,
   CheckCircle2,
   Sparkles,
-  ArrowRight,
   AlertCircle,
   Share2,
   Copy,
@@ -78,6 +80,18 @@ export default function DailyChallengePage() {
     return () => clearInterval(timer);
   }, []);
 
+  const triggerCelebration = useCallback(() => {
+    try {
+      confetti({
+        particleCount: 75,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+    } catch {
+      // Ignore if canvas is unavailable
+    }
+  }, []);
+
   // Load Daily Challenge (Runs for both logged-in users and guests)
   useEffect(() => {
     async function loadDaily() {
@@ -122,7 +136,10 @@ export default function DailyChallengePage() {
     const correctCount = answers.filter((a) => a.isCorrect).length;
     const totalCount = answers.length;
 
-    // Logged in user: record to Firestore and navigate to full results
+    // Trigger celebratory confetti
+    triggerCelebration();
+
+    // Logged in user: record to Firestore and navigate to results or completed view
     if (user) {
       try {
         const attemptId = await recordAttempt({
@@ -230,14 +247,14 @@ export default function DailyChallengePage() {
   // Already completed screen (Supports both Authenticated and Guest)
   if (alreadyCompleted) {
     return (
-      <div className="max-w-lg mx-auto py-8 sm:py-12 space-y-6">
-        <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-5 text-center">
-          <div className="h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 mx-auto flex items-center justify-center">
-            <CheckCircle2 className="h-8 w-8" />
+      <div className="max-w-2xl mx-auto py-6 sm:py-10 space-y-6">
+        <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-6 text-center">
+          <div className="h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 mx-auto flex items-center justify-center shadow-xs">
+            <CheckCircle2 className="h-8 w-8 stroke-[2.5]" />
           </div>
 
           <div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/60 mb-2">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/60 mb-2">
               <Flame className="h-4 w-4 fill-current text-amber-500" />
               {user ? `${toBnDigits(effectiveStreak)} দিনের স্ট্রিক সুরক্ষিত!` : "আজকের চ্যালেঞ্জ সম্পন্ন!"}
             </span>
@@ -246,12 +263,21 @@ export default function DailyChallengePage() {
                 ? `আপনি ৫টিতে ${toBnDigits(guestResult.score)}টি সঠিক উত্তর দিয়েছেন!`
                 : "আজকের ডেইলি চ্যালেঞ্জ সম্পন্ন!"}
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
               {user
-                ? `আপনি আজকের ৫টি গুরুত্বপূর্ণ বিসিএস প্রশ্নের চ্যালেঞ্জ সম্পন্ন করেছেন (${challenge?.date})। আগামীকাল নতুন সেটের জন্য ফিরে আসুন!`
+                ? `আপনি আজকের ৫টি গুরুত্বপূর্ণ বিসিএস বিষয়ের চ্যালেঞ্জ সফলভাবে সম্পন্ন করেছেন (${challenge?.date})। আগামীকাল রাত ১২টায় নতুন সেটের জন্য প্রস্তুত থাকুন!`
                 : "আপনার স্কোর সাময়িকভাবে ব্রাউজারে সংরক্ষিত আছে। আপনার ১ দিনের স্ট্রিক সেভ করতে এখনই অ্যাকাউন্ট খুলুন!"}
             </p>
           </div>
+
+          {/* 7-Day Streak Week Visualizer */}
+          {user && (
+            <StreakWeekTracker
+              effectiveStreak={effectiveStreak}
+              hasCompletedToday={true}
+              todayDate={today}
+            />
+          )}
 
           {/* Guest Sign-up / Login Viral Prompt */}
           {!user && (
@@ -284,7 +310,7 @@ export default function DailyChallengePage() {
           )}
 
           {/* Wordle-style Emoji Share Block */}
-          <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-amber-500/10 border border-amber-200/80 dark:border-amber-900/60 text-left space-y-3">
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-amber-500/10 border border-amber-200/80 dark:border-amber-900/60 text-left space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Share2 className="h-4 w-4 text-amber-600 dark:text-amber-400" />
@@ -293,7 +319,7 @@ export default function DailyChallengePage() {
                 </span>
               </div>
             </div>
-            <div className="p-3 bg-white dark:bg-[#111827] rounded-lg border border-slate-200 dark:border-slate-800 text-[11px] font-mono whitespace-pre-wrap text-slate-700 dark:text-slate-300">
+            <div className="p-3.5 bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 text-[11px] font-mono whitespace-pre-wrap text-slate-700 dark:text-slate-300 shadow-2xs">
               {shareText}
             </div>
             <div className="flex items-center gap-2">
@@ -310,7 +336,7 @@ export default function DailyChallengePage() {
                 href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs flex-1 transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs flex-1 transition-colors"
               >
                 <Share2 className="h-3.5 w-3.5" />
                 হোয়াটসঅ্যাপে শেয়ার
@@ -336,10 +362,10 @@ export default function DailyChallengePage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
             <Button
               onClick={() => router.push("/leaderboard")}
-              className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs gap-1.5 w-full sm:w-auto"
+              className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs gap-1.5 w-full sm:w-auto cursor-pointer"
             >
               <Trophy className="h-3.5 w-3.5" />
               মেধাতালিকা দেখুন
@@ -348,52 +374,27 @@ export default function DailyChallengePage() {
             <Button
               variant="outline"
               onClick={() => router.push("/question-bank")}
-              className="text-xs gap-1.5 w-full sm:w-auto"
+              className="text-xs gap-1.5 w-full sm:w-auto cursor-pointer"
             >
               <BookOpen className="h-3.5 w-3.5" />
               প্রশ্ন ব্যাংক ব্রাউজ করুন
             </Button>
           </div>
         </div>
+
+        {/* Expandable Review of Today's 5 Questions & Explanations */}
+        {questions.length > 0 && <DailyQuestionReview questions={questions} />}
       </div>
     );
   }
 
   // Active Challenge Runner View
   return (
-    <div className="space-y-4 max-w-4xl mx-auto">
-      {/* Top Banner */}
-      <div className="w-full bg-linear-to-r from-amber-50 via-white to-amber-50 dark:from-amber-950/20 dark:via-[#111827] dark:to-amber-950/20 p-4 rounded-xl border border-amber-200/80 dark:border-amber-900/60 shadow-xs flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-            <Flame className="h-5 w-5 fill-current" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-sm text-slate-900 dark:text-slate-100">
-                ডেইলি ব্রেন টিজার (৫টি গুরুত্বপূর্ণ বিষয়)
-              </span>
-              <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-950 px-2 py-0.5 rounded-full">
-                ৫টি প্রশ্ন
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              {user
-                ? effectiveStreak > 0
-                  ? `সবগুলো প্রশ্নের সঠিক উত্তর দিয়ে আপনার ${toBnDigits(effectiveStreak)} দিনের স্ট্রিক রক্ষা করুন।`
-                  : "সবগুলো প্রশ্ন সমাধান করে আজই নতুন ১ দিনের স্ট্রিক শুরু করুন।"
-                : "৫টি বিষয়ের ৫টি প্রশ্ন সমাধান করে আজকের স্ট্রিক শুরু করুন। রেজিস্ট্রেশন ছাড়াও এখনই খেলতে পারবেন!"}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <QuestionRunner
+    <div className="space-y-5 max-w-3xl mx-auto pb-12">
+      <DailyRunner
         questions={questions}
-        feedbackMode="instant"
         onComplete={handleComplete}
-        examTitle="দৈনিক চ্যালেঞ্জ"
-        subjectTitle={challenge?.date}
+        dateTitle={challenge?.date}
         onExit={() => router.push(user ? "/dashboard" : "/question-bank")}
       />
     </div>
