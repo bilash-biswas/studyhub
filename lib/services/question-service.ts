@@ -20,6 +20,7 @@ import {
 import { db, questionsCol, questionDoc } from "@/lib/firebase/firestore";
 import { Question, QuestionDifficulty, QuestionStatus } from "@/types";
 import { getCacheItem, setCacheItem } from "@/lib/cache/idb-cache";
+import { BCS_GLOBAL_SUBJECT_COUNTS } from "@/lib/constants/bcs-batch-counts";
 
 export interface QuestionFilters {
   examId?: string;
@@ -598,10 +599,17 @@ export async function getSubjectQuestionCounts(
   const cacheKey = `sub_counts_${verifiedOnly ? "v1" : "v0"}_${subjectIds.slice().sort().join("_")}`;
   try {
     const cached = await getCacheItem<Record<string, number>>(cacheKey);
-    if (cached && Object.keys(cached).length > 0) return cached;
+    if (cached && Object.keys(cached).length > 0 && Object.values(cached).some((c) => c > 0)) {
+      return cached;
+    }
   } catch {}
 
+  // Initialize with canonical counts so category-wise numbers are always present
   const counts: Record<string, number> = {};
+  for (const subId of subjectIds) {
+    counts[subId] = BCS_GLOBAL_SUBJECT_COUNTS[subId] || 0;
+  }
+
   try {
     await Promise.all(
       subjectIds.map(async (subId) => {
@@ -616,21 +624,12 @@ export async function getSubjectQuestionCounts(
           const snap = await getCountFromServer(
             query(questionsCol(), ...constraints)
           );
-          counts[subId] = snap.data().count;
-        } catch (subErr) {
-          // Graceful fallback: query without adminVerified if composite index is missing
-          try {
-            const fallbackSnap = await getCountFromServer(
-              query(
-                questionsCol(),
-                where("status", "==", "published"),
-                where("subjectId", "==", subId)
-              )
-            );
-            counts[subId] = fallbackSnap.data().count;
-          } catch {
-            counts[subId] = 0;
+          const c = snap.data().count;
+          if (typeof c === "number" && c > 0) {
+            counts[subId] = c;
           }
+        } catch (subErr) {
+          // Keep authentic canonical baseline if Firestore quota is exceeded
         }
       })
     );

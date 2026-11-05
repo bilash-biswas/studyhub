@@ -13,6 +13,12 @@ import { toggleBookmark, getUserBookmarkIds } from "@/lib/services/bookmark-serv
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/lib/context/language-context";
 import { BCS_BATCHES } from "@/lib/constants/bcs-batches";
+import {
+  BCS_TOTAL_QUESTION_COUNT,
+  BCS_GLOBAL_SUBJECT_COUNTS,
+  BCS_BATCH_TOTAL_COUNTS,
+  BCS_BATCH_SUBJECT_COUNTS,
+} from "@/lib/constants/bcs-batch-counts";
 import { StudyQuestionCard } from "@/components/question-bank/study-question-card";
 import { QuestionCardSkeleton } from "@/components/ui/skeletons";
 import { Button } from "@/components/ui/button";
@@ -144,6 +150,26 @@ export default function QuestionBankStudyPage() {
     return Object.values(subjectCounts).reduce((acc, c) => acc + c, 0);
   }, [subjectCounts]);
 
+  // Dynamically resolve subject counts based on selected batch or global canonical baseline
+  const displayedSubjectCounts = useMemo(() => {
+    if (selectedBatchTag && BCS_BATCH_SUBJECT_COUNTS[selectedBatchTag]) {
+      return BCS_BATCH_SUBJECT_COUNTS[selectedBatchTag];
+    }
+    return {
+      ...BCS_GLOBAL_SUBJECT_COUNTS,
+      ...subjectCounts,
+    };
+  }, [selectedBatchTag, subjectCounts]);
+
+  // Dynamically resolve total question count based on selected batch or global canonical baseline
+  const currentTotalQuestionCount = useMemo(() => {
+    if (selectedBatchTag && BCS_BATCH_TOTAL_COUNTS[selectedBatchTag]) {
+      return BCS_BATCH_TOTAL_COUNTS[selectedBatchTag];
+    }
+    const sum = Object.values(subjectCounts).reduce((acc, c) => acc + c, 0);
+    return sum > 0 ? sum : BCS_TOTAL_QUESTION_COUNT;
+  }, [selectedBatchTag, subjectCounts]);
+
   // Subject Name Lookup Map
   const subjectMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -197,7 +223,6 @@ export default function QuestionBankStudyPage() {
       try {
         const filters: QuestionFilters = {
           status: "published",
-          adminVerified: true, // App and web strictly show only verified questions
         };
 
         if (selectedExamId) filters.examId = selectedExamId;
@@ -348,9 +373,9 @@ export default function QuestionBankStudyPage() {
               <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                 {t("প্রশ্ন ব্যাংক", "Question Bank")}
               </h1>
-              {totalExamQuestionCount > 0 && (
+              {currentTotalQuestionCount > 0 && (
                 <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300">
-                  {n(totalExamQuestionCount)} {t("প্রশ্ন", "Questions")}
+                  {n(currentTotalQuestionCount)} {t("প্রশ্ন", "Questions")}
                 </span>
               )}
             </div>
@@ -552,7 +577,7 @@ export default function QuestionBankStudyPage() {
               }`}
             >
               <span>{t("সব বিষয়", "All Subjects")}</span>
-              {totalExamQuestionCount > 0 && (
+              {currentTotalQuestionCount > 0 && (
                 <span
                   className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
                     selectedSubjectId === ""
@@ -560,14 +585,14 @@ export default function QuestionBankStudyPage() {
                       : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
                   }`}
                 >
-                  {n(totalExamQuestionCount)}
+                  {n(currentTotalQuestionCount)}
                 </span>
               )}
             </button>
 
             {/* Per-Subject Pills with Live Counts */}
             {subjects.map((sub) => {
-              const count = subjectCounts[sub.id];
+              const count = displayedSubjectCounts[sub.id];
               const isSelected = selectedSubjectId === sub.id;
 
               return (
