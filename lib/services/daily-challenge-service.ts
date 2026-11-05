@@ -109,8 +109,131 @@ export async function generateDiverseDailyQuestions(dateStr: string = getFormatt
     }
   }
 
+  // Final Guarantee: If Firestore quota is exceeded or network is offline, ensure 5 verified questions
+  if (selectedQuestions.length < 5) {
+    for (const fb of FALLBACK_DAILY_QUESTIONS) {
+      if (selectedQuestions.length >= 5) break;
+      if (!selectedQuestions.some((q) => q.id === fb.id)) {
+        selectedQuestions.push(fb);
+      }
+    }
+  }
+
   return selectedQuestions;
 }
+
+const FALLBACK_DAILY_QUESTIONS: Question[] = [
+  {
+    id: "dc_fb_bn_1",
+    examId: "exam_bcs",
+    subjectId: "sub_bcs_bangla",
+    question: "চর্যাপদ কত সালে আবিষ্কৃত হয়?",
+    options: [
+      { id: "a", text: "১৯০৭ সালে" },
+      { id: "b", text: "১৯০৯ সালে" },
+      { id: "c", text: "১৯১৬ সালে" },
+      { id: "d", text: "১৯২৩ সালে" },
+    ],
+    correctOptionId: "a",
+    explanation: "মহামহোপাধ্যায় হরপ্রসাদ শাস্ত্রী ১৯০৭ সালে নেপালের রাজদরবারের রয়েল লাইব্রেরি থেকে চর্যাপদের মূল পুঁথি আবিষ্কার করেন।",
+    difficulty: "medium",
+    status: "published",
+    adminVerified: true,
+    tags: ["46th-bcs", "bangla"],
+    createdBy: "system",
+    updatedBy: "system",
+    createdAt: null as any,
+    updatedAt: null as any,
+  },
+  {
+    id: "dc_fb_en_1",
+    examId: "exam_bcs",
+    subjectId: "sub_bcs_english",
+    question: "Who wrote the play \"The Tempest\"?",
+    options: [
+      { id: "a", text: "William Shakespeare" },
+      { id: "b", text: "Christopher Marlowe" },
+      { id: "c", text: "Ben Jonson" },
+      { id: "d", text: "John Webster" },
+    ],
+    correctOptionId: "a",
+    explanation: "\"The Tempest\" is a renowned play written by William Shakespeare.",
+    difficulty: "medium",
+    status: "published",
+    adminVerified: true,
+    tags: ["45th-bcs", "english"],
+    createdBy: "system",
+    updatedBy: "system",
+    createdAt: null as any,
+    updatedAt: null as any,
+  },
+  {
+    id: "dc_fb_math_1",
+    examId: "exam_bcs",
+    subjectId: "sub_bcs_math",
+    question: "যদি a + b = 7 এবং ab = 10 হয়, তবে a² + b² এর মান কত?",
+    options: [
+      { id: "a", text: "29" },
+      { id: "b", text: "39" },
+      { id: "c", text: "49" },
+      { id: "d", text: "19" },
+    ],
+    correctOptionId: "a",
+    explanation: "আমরা জানি, a² + b² = (a+b)² - 2ab = (7)² - 2(10) = 49 - 20 = 29",
+    difficulty: "medium",
+    status: "published",
+    adminVerified: true,
+    tags: ["45th-bcs", "math"],
+    createdBy: "system",
+    updatedBy: "system",
+    createdAt: null as any,
+    updatedAt: null as any,
+  },
+  {
+    id: "dc_fb_bd_1",
+    examId: "exam_bcs",
+    subjectId: "sub_bcs_bd_affairs",
+    question: "ঐতিহাসিক ৭ই মার্চের ভাষণ সংবিধানের কোন তফসিলে অন্তর্ভুক্ত করা হয়েছে?",
+    options: [
+      { id: "a", text: "পঞ্চম তফসিলে" },
+      { id: "b", text: "ষষ্ঠ তফসিলে" },
+      { id: "c", text: "সপ্তম তফসিলে" },
+      { id: "d", text: "চতুর্থ তফসিলে" },
+    ],
+    correctOptionId: "a",
+    explanation: "বঙ্গবন্ধুর ঐতিহাসিক ৭ই মার্চের ভাষণ সংবিধানের ৫ম তফসিলে অন্তর্ভুক্ত।",
+    difficulty: "medium",
+    status: "published",
+    adminVerified: true,
+    tags: ["46th-bcs", "bangladesh"],
+    createdBy: "system",
+    updatedBy: "system",
+    createdAt: null as any,
+    updatedAt: null as any,
+  },
+  {
+    id: "dc_fb_gn_1",
+    examId: "exam_bcs",
+    subjectId: "sub_bcs_intl_affairs",
+    question: "আন্তর্জাতিক আদালতের (ICJ) প্রধান কার্যালয় কোথায় অবস্থিত?",
+    options: [
+      { id: "a", text: "হেগ, নেদারল্যান্ডস" },
+      { id: "b", text: "জেনেভা, সুইজারল্যান্ড" },
+      { id: "c", text: "নিউইয়র্ক, যুক্তরাষ্ট্র" },
+      { id: "d", text: "ভিয়েনা, অস্ট্রিয়া" },
+    ],
+    correctOptionId: "a",
+    explanation: "জাতিসংঘের প্রধান বিচারিক অঙ্গ আন্তর্জাতিক বিচার আদালত (ICJ) নেদারল্যান্ডসের দ্য হেগ শহরে অবস্থিত।",
+    difficulty: "medium",
+    status: "published",
+    adminVerified: true,
+    tags: ["46th-bcs", "international"],
+    createdBy: "system",
+    updatedBy: "system",
+    createdAt: null as any,
+    updatedAt: null as any,
+  },
+];
 
 /**
  * Fetches or automatically generates today's 5-question Daily Challenge.
