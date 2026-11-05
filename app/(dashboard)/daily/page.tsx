@@ -127,6 +127,8 @@ export default function DailyChallengePage() {
       try {
         const attemptId = await recordAttempt({
           userId: user.uid,
+          displayName: profile?.name || user.displayName || "Candidate",
+          photoURL: profile?.photoURL || user.photoURL || null,
           mockTestId: `daily_${challenge.date}`,
           mode: "daily",
           answers,

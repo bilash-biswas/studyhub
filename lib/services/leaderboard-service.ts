@@ -131,3 +131,32 @@ export async function recordLeaderboardScore(input: RecordScoreInput): Promise<v
     console.error("Error recording leaderboard score:", error);
   }
 }
+
+/**
+ * Updates the user's display name across active leaderboard periods.
+ */
+export async function updateLeaderboardDisplayName(
+  userId: string,
+  displayName: string
+): Promise<void> {
+  if (!userId || !displayName || displayName === "Candidate") return;
+  const todayDate = getFormattedDate();
+  const weekKey = getWeeklyPeriodKey();
+
+  const docIds = [
+    `daily_${todayDate}_${userId}`,
+    `weekly_${weekKey}_${userId}`,
+    `allTime_all_${userId}`,
+  ];
+
+  try {
+    const batch = writeBatch(db);
+    for (const docId of docIds) {
+      const docRef = leaderboardScoreDoc(docId);
+      batch.set(docRef, { displayName }, { merge: true });
+    }
+    await batch.commit();
+  } catch (err) {
+    console.warn("Could not update leaderboard displayName:", err);
+  }
+}

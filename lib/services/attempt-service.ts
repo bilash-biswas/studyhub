@@ -28,6 +28,8 @@ import { recordLeaderboardScore } from "@/lib/services/leaderboard-service";
 
 export interface CreateAttemptInput {
   userId: string;
+  displayName?: string;
+  photoURL?: string | null;
   examId?: string;
   subjectId?: string;
   mockTestId?: string;
@@ -141,10 +143,20 @@ export async function recordAttempt(input: CreateAttemptInput): Promise<string> 
 
 
   // Update user profile metrics & streak in the same atomic batch
+  let userDisplayName = input.displayName;
+  let userPhotoURL = input.photoURL || null;
+
   try {
     const userSnap = await getDoc(userDoc(input.userId));
     if (userSnap.exists()) {
       const userData = userSnap.data();
+      if (!userDisplayName) {
+        userDisplayName = userData.name || userData.displayName || "Candidate";
+      }
+      if (!userPhotoURL && userData.photoURL) {
+        userPhotoURL = userData.photoURL;
+      }
+
       const streakRes = calculateNextStreak({
         currentStreak: userData.currentStreak || 0,
         longestStreak: userData.longestStreak || 0,
@@ -176,7 +188,8 @@ export async function recordAttempt(input: CreateAttemptInput): Promise<string> 
   // Asynchronously record leaderboard points without blocking
   recordLeaderboardScore({
     userId: input.userId,
-    displayName: "Candidate",
+    displayName: userDisplayName || "Candidate",
+    photoURL: userPhotoURL,
     scoreToAdd: Math.max(0, score),
     questionsAttempted: answeredQuestions,
     correctAnswers,
