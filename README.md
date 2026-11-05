@@ -26,6 +26,23 @@ The application delivers seamless rendering of mixed **Bengali Unicode** and com
 
 ---
 
+## 📱 Official Android Mobile App (অ্যান্ড্রয়েড অ্যাপ ডাউনলোড)
+
+Medhavi is also available as a high-performance cross-platform Flutter mobile application. Download the official Android APK directly or scan the QR code below:
+
+<div align="center">
+
+| স্ক্যান করে ডাউনলোড করুন (Scan QR Code) | সরাসরি ডাউনলোড লিংক ও তথ্য (Direct APK Links) |
+| :---: | :--- |
+| <a href="https://medhavi-nine.vercel.app/downloads/medhavi-app.apk"><img src="public/downloads/qr_download_apk.png" width="180" height="180" alt="Medhavi APK Download QR Code" /></a><br><sub>📱 স্মার্টফোনের ক্যামেরা বা Google Lens দিয়ে স্ক্যান করুন</sub> | 🚀 **লেটেস্ট রিলিজ:** `v1.0.7+8` (অ্যান্ড্রয়েড ৭.০ বা তদূর্ধ্ব)<br>📦 **ফাইল সাইজ:** `~৫৮.৮ MB`<br>🛡️ **সিকিউরিটি:** সম্পূর্ণ ভাইরাস ও ম্যালওয়্যার মুক্ত (Verified Clean)<br><br>📥 <a href="https://medhavi-nine.vercel.app/downloads/medhavi-app.apk"><b>সরাসরি APK ডাউনলোড করুন (Fast CDN)</b></a><br>🌐 <a href="https://medhavi-nine.vercel.app/download"><b>অফিসিয়াল ওয়েব ডাউনলোড হাব (Web Hub)</b></a><br>🐙 <a href="https://github.com/bilash-biswas/medhavi-mobile"><b>GitHub Mobile Repo (medhavi-mobile)</b></a> |
+
+> [!TIP]
+> যেকোনো স্মার্টফোনের ক্যামেরা বা **Google Lens** দিয়ে উপরের **QR কোডটি স্ক্যান করলেই** স্বয়ংক্রিয়ভাবে সরাসরি আপনার ফোনে `medhavi-app.apk` ডাউনলোড শুরু হয়ে যাবে।
+
+</div>
+
+---
+
 ## ⚡ Strict $0 / 0 BDT Free-Tier Architecture
 
 Medhavi is engineered from the ground up to operate in production at approximately **$0 infrastructure cost** by adhering to free-tier quotas:
