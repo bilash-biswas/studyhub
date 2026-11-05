@@ -134,7 +134,7 @@ export default function QuestionBankStudyPage() {
         setSelectedSubjectId("");
 
         if (subs.length > 0) {
-          const counts = await getSubjectQuestionCounts(subs.map((s) => s.id), false);
+          const counts = await getSubjectQuestionCounts(subs.map((s) => s.id), true);
           setSubjectCounts(counts);
         } else {
           setSubjectCounts({});
@@ -223,6 +223,7 @@ export default function QuestionBankStudyPage() {
       try {
         const filters: QuestionFilters = {
           status: "published",
+          adminVerified: true, // User requirement: strictly only show admin-verified questions
         };
 
         if (selectedExamId) filters.examId = selectedExamId;
@@ -495,11 +496,19 @@ export default function QuestionBankStudyPage() {
                     : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-transparent hover:border-slate-300"
                 }`}
               >
-                {filteredBatches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {lang === "bn" ? b.labelBn : b.labelEn}
-                  </option>
-                ))}
+                {filteredBatches.map((b) => {
+                  const count = BCS_BATCH_TOTAL_COUNTS[b.id];
+                  const badge = b.id
+                    ? count
+                      ? ` (${n(count)})`
+                      : ` (${t("যাচাই প্রক্রিয়াধীন", "Under review")})`
+                    : "";
+                  return (
+                    <option key={b.id} value={b.id}>
+                      {(lang === "bn" ? b.labelBn : b.labelEn) + badge}
+                    </option>
+                  );
+                })}
               </select>
 
               {/* Era Quick Presets (Small chips) */}
