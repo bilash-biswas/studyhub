@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   Menu,
   X,
+  Flame,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/lib/context/language-context";
@@ -81,6 +82,12 @@ export default function DashboardLayout({
 
   const navItems = [
     { label: t("ড্যাশবোর্ড", "Dashboard"), href: "/dashboard", icon: LayoutDashboard },
+    {
+      label: t("দৈনিক চ্যালেঞ্জ", "Daily Challenge"),
+      href: "/daily",
+      icon: Flame,
+      badge: profile?.currentStreak ? `${profile.currentStreak} 🔥` : undefined,
+    },
     { label: t("প্রশ্ন ব্যাংক", "Question Bank"), href: "/question-bank", icon: BookOpen },
     { label: t("অনুশীলন", "Practice"), href: "/practice", icon: Sparkles },
     { label: t("মডেল টেস্ট", "Mock Exams"), href: "/exams", icon: Timer },
@@ -177,14 +184,29 @@ export default function DashboardLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                   isActive
                     ? "bg-[#EEF2FF] text-[#4F46E5] dark:bg-[#312E81] dark:text-[#A5B4FC] font-semibold"
                     : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80"
                 }`}
               >
-                <Icon className={`h-4 w-4 ${isActive ? "text-[#4F46E5] dark:text-[#A5B4FC]" : "text-slate-500"}`} />
-                {item.label}
+                <div className="flex items-center gap-3">
+                  <Icon
+                    className={`h-4 w-4 ${
+                      isActive
+                        ? "text-[#4F46E5] dark:text-[#A5B4FC]"
+                        : item.href === "/daily"
+                        ? "text-amber-500 fill-amber-500/20"
+                        : "text-slate-500"
+                    }`}
+                  />
+                  <span>{item.label}</span>
+                </div>
+                {item.badge && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60">
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -265,14 +287,29 @@ export default function DashboardLayout({
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium ${
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium ${
                     isActive
                       ? "bg-[#EEF2FF] text-[#4F46E5] dark:bg-[#312E81] dark:text-[#A5B4FC] font-semibold"
                       : "text-slate-700 dark:text-slate-300"
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
+                  <div className="flex items-center gap-3">
+                    <Icon
+                      className={`h-4 w-4 ${
+                        isActive
+                          ? "text-[#4F46E5] dark:text-[#A5B4FC]"
+                          : item.href === "/daily"
+                          ? "text-amber-500 fill-amber-500/20"
+                          : "text-slate-500"
+                      }`}
+                    />
+                    <span>{item.label}</span>
+                  </div>
+                  {item.badge && (
+                    <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60">
+                      {item.badge}
+                    </span>
+                  )}
                 </Link>
               );
             })}
