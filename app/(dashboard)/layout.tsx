@@ -44,8 +44,11 @@ export default function DashboardLayout({
   const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
 
-  // Guest-friendly routes: /question-bank can be browsed publicly by search crawlers and guests
-  const isGuestAllowedRoute = pathname === "/question-bank" || Boolean(pathname?.startsWith("/question-bank"));
+  // Guest-friendly routes: /question-bank and /daily can be browsed publicly by search crawlers and guests
+  const isGuestAllowedRoute =
+    pathname === "/question-bank" ||
+    Boolean(pathname?.startsWith("/question-bank")) ||
+    pathname === "/daily";
 
   // Auth Protection: If not logged in and done loading, redirect to login (except guest allowed routes)
   useEffect(() => {

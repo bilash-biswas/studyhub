@@ -174,10 +174,18 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Launch Button */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Button
+            onClick={() => router.push("/daily")}
+            className="bg-amber-600 hover:bg-amber-700 text-white text-xs gap-1.5 shadow-xs h-9 px-3.5"
+          >
+            <Flame className="h-4 w-4 fill-current text-amber-200" />
+            {t("ডেইলি চ্যালেঞ্জ", "Daily Challenge")}
+          </Button>
+
           <Button
             onClick={() => router.push("/practice")}
-            className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs gap-1.5 shadow-xs h-9 px-4"
+            className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs gap-1.5 shadow-xs h-9 px-3.5"
           >
             <Sparkles className="h-4 w-4" />
             {t("অনুশীলন শুরু করুন", "Start Practice")}
@@ -186,13 +194,49 @@ export default function DashboardPage() {
           <Button
             variant="outline"
             onClick={() => router.push("/exams")}
-            className="text-xs gap-1.5 h-9 px-4"
+            className="text-xs gap-1.5 h-9 px-3.5"
           >
             <Timer className="h-4 w-4 text-sky-500" />
             {t("মডেল টেস্ট", "Mock Exams")}
           </Button>
         </div>
       </div>
+
+      {/* Daily Challenge Pending Streak Banner */}
+      {streakEval.status !== "practiced_today" && (
+        <div className="p-4 rounded-xl border border-amber-300 dark:border-amber-800/80 bg-linear-to-r from-amber-500/10 via-amber-50/50 to-white dark:from-amber-950/40 dark:via-amber-900/10 dark:to-[#111827] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <Flame className="h-5 w-5 fill-current" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
+                  {t("আজকের ৫টি প্রশ্নের ব্রেন টিজার বাকি আছে!", "Today's 5-Question Daily Challenge is pending!")}
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300">
+                  {t("৫টি বিষয়", "5 Subjects")}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                {t(
+                  "বাংলা, ইংরেজি, বাংলাদেশ, গণিত ও তথ্যপ্রযুক্তির ৫টি প্রশ্ন সমাধান করে আজকের স্ট্রিক সুরক্ষিত করুন।",
+                  "Solve 5 questions across 5 core subjects to protect your streak and rise on the leaderboard."
+                )}
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={() => router.push("/daily")}
+            size="sm"
+            className="bg-amber-600 hover:bg-amber-700 text-white text-xs gap-1.5 shrink-0 shadow-xs cursor-pointer"
+          >
+            <Flame className="h-3.5 w-3.5 fill-current" />
+            {t("চ্যালেঞ্জ শুরু করুন", "Start Challenge")}
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      )}
 
       {/* Mobile App Download QR Code Banner */}
       <MobileAppDownload variant="banner" />
