@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { Question } from "@/types";
 import { MathText } from "@/components/ui/math-text";
 import { useLanguage } from "@/lib/context/language-context";
@@ -18,6 +19,7 @@ import {
   ChevronUp,
   Copy,
   Check,
+  ExternalLink,
 } from "lucide-react";
 
 export interface StudyQuestionCardProps {
@@ -258,6 +260,16 @@ export function StudyQuestionCard({
           >
             <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-amber-500" : ""}`} />
           </button>
+
+          {/* Public Question Permalink for Crawlers & Sharing */}
+          <Link
+            href={`/questions/${question.id}`}
+            target="_blank"
+            title={t("প্রশ্নের একক পৃষ্ঠা দেখুন ও শেয়ার করুন", "View individual question page")}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </Link>
         </div>
       </div>
 

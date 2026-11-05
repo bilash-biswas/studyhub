@@ -652,3 +652,90 @@ export async function seedSampleQuestions(adminUserId: string = "system"): Promi
     return 0;
   }
 }
+
+/**
+ * Fetches related questions for SEO internal linking and user exploration.
+ * Matches by subjectId first, with fallback to examId or general published questions.
+ */
+export async function getRelatedQuestions(
+  question: Question,
+  limitCount: number = 6
+): Promise<Question[]> {
+  try {
+    const constraints: QueryConstraint[] = [
+      where("status", "==", "published"),
+    ];
+
+    if (question.subjectId) {
+      constraints.push(where("subjectId", "==", question.subjectId));
+    } else if (question.examId) {
+      constraints.push(where("examId", "==", question.examId));
+    }
+
+    constraints.push(limit(limitCount + 4));
+
+    const q = query(questionsCol(), ...constraints);
+    const snap = await getDocs(q);
+
+    let related = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() }) as Question)
+      .filter((item) => item.id !== question.id)
+      .slice(0, limitCount);
+
+    // If fewer than 2 related questions found by subject, fallback to same exam
+    if (related.length < 2 && question.examId && question.subjectId) {
+      const fallbackSnap = await getDocs(
+        query(
+          questionsCol(),
+          where("status", "==", "published"),
+          where("examId", "==", question.examId),
+          limit(limitCount + 2)
+        )
+      );
+      const fallbackItems = fallbackSnap.docs
+        .map((d) => ({ id: d.id, ...d.data() }) as Question)
+        .filter((item) => item.id !== question.id && !related.some((r) => r.id === item.id));
+      related = [...related, ...fallbackItems].slice(0, limitCount);
+    }
+
+    return related;
+  } catch (error) {
+    console.error("Error fetching related questions:", error);
+    return [];
+  }
+}
+
+/**
+ * Fetches lightweight question metadata (id and last modified timestamp) for dynamic sitemap generation.
+ */
+export async function getQuestionsForSitemap(): Promise<Array<{ id: string; lastModified: Date }>> {
+  try {
+    const q = query(
+      questionsCol(),
+      where("status", "==", "published"),
+      orderBy(documentId())
+    );
+    const snap = await getDocs(q);
+    const now = new Date();
+    return snap.docs.map((docSnap) => {
+      const data = docSnap.data();
+      let lastModified = now;
+      if (data.updatedAt?.toDate) {
+        lastModified = data.updatedAt.toDate();
+      } else if (data.updatedAt) {
+        const d = new Date(data.updatedAt);
+        if (!isNaN(d.getTime())) lastModified = d;
+      } else if (data.createdAt?.toDate) {
+        lastModified = data.createdAt.toDate();
+      }
+      return {
+        id: docSnap.id,
+        lastModified,
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching questions for sitemap:", error);
+    return [];
+  }
+}
+

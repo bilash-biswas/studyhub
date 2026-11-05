@@ -5,8 +5,11 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin/", "/results/"],
+      disallow: ["/admin/", "/results/", "/api/"],
     },
-    sitemap: "https://medhavi-nine.vercel.app/sitemap.xml",
+    sitemap: [
+      "https://medhavi-nine.vercel.app/sitemap.xml",
+      "https://medhavi-nine.vercel.app/questions/sitemap.xml",
+    ],
   };
 }

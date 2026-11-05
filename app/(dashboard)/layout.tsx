@@ -42,12 +42,15 @@ export default function DashboardLayout({
   const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
 
-  // Auth Protection: If not logged in and done loading, redirect to login
+  // Guest-friendly routes: /question-bank can be browsed publicly by search crawlers and guests
+  const isGuestAllowedRoute = pathname === "/question-bank" || Boolean(pathname?.startsWith("/question-bank"));
+
+  // Auth Protection: If not logged in and done loading, redirect to login (except guest allowed routes)
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !isGuestAllowedRoute) {
       router.push("/login");
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, isGuestAllowedRoute]);
 
   // Scroll listener for LinkedIn-style mobile navigation hide/show
   useEffect(() => {
@@ -115,7 +118,7 @@ export default function DashboardLayout({
     );
   }
 
-  if (!user) {
+  if (!user && !isGuestAllowedRoute) {
     return null;
   }
 
@@ -125,7 +128,7 @@ export default function DashboardLayout({
       <aside className="hidden lg:flex w-[268px] flex-col fixed inset-y-0 z-30 bg-white dark:bg-[#111827] border-r border-slate-200 dark:border-slate-800">
         {/* Brand */}
         <div className="h-16 flex items-center justify-between gap-2 px-4 border-b border-slate-200 dark:border-slate-800">
-          <Link href="/dashboard" className="flex items-center gap-2 min-w-0">
+          <Link href={user ? "/dashboard" : "/question-bank"} className="flex items-center gap-2 min-w-0">
             <div className="h-8 w-8 rounded-lg bg-[#4F46E5] text-white flex items-center justify-center shadow-xs shrink-0">
               <GraduationCap className="h-4 w-4" />
             </div>
@@ -140,21 +143,36 @@ export default function DashboardLayout({
           </div>
         </div>
 
-        {/* User Card */}
+        {/* User / Guest Card */}
         <div className="p-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-semibold flex items-center justify-center text-xs shrink-0 border border-indigo-200 dark:border-indigo-800">
-              {profile?.name ? profile.name.slice(0, 2).toUpperCase() : "MD"}
+          {user ? (
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-semibold flex items-center justify-center text-xs shrink-0 border border-indigo-200 dark:border-indigo-800">
+                {profile?.name ? profile.name.slice(0, 2).toUpperCase() : "MD"}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold truncate text-slate-900 dark:text-slate-100">
+                  {profile?.name || user.displayName || t("প্রার্থী", "Candidate")}
+                </p>
+                <p className="text-[11px] text-slate-500 truncate">
+                  {profile?.email || user.email}
+                </p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold truncate text-slate-900 dark:text-slate-100">
-                {profile?.name || user.displayName || t("প্রার্থী", "Candidate")}
-              </p>
-              <p className="text-[11px] text-slate-500 truncate">
-                {profile?.email || user.email}
-              </p>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <User className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                <span>{t("অতিথি শিক্ষার্থী", "Guest Student")}</span>
+              </div>
+              <Link
+                href="/login"
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 transition-colors shadow-2xs"
+              >
+                {t("লগইন / রেজিস্টার", "Sign In / Register")}
+              </Link>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Navigation Items */}
@@ -193,14 +211,23 @@ export default function DashboardLayout({
 
         {/* Sidebar Footer */}
         <div className="p-3 border-t border-slate-200 dark:border-slate-800">
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
-          >
-            <LogOut className="h-4 w-4" />
-            {t("লগআউট", "Sign Out")}
-          </button>
+          {user ? (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+            >
+              <LogOut className="h-4 w-4" />
+              {t("লগআউট", "Sign Out")}
+            </button>
+          ) : (
+            <Link
+              href="/download"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors"
+            >
+              <span>{t("অ্যাপ ডাউনলোড (APK)", "Download APK")}</span>
+            </Link>
+          )}
         </div>
       </aside>
 
@@ -267,18 +294,64 @@ export default function DashboardLayout({
                 {t("অ্যাডমিন প্যানেল", "Admin Panel")}
               </Link>
             )}
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-red-600 pt-2"
-            >
-              <LogOut className="h-4 w-4" />
-              {t("লগআউট", "Sign Out")}
-            </button>
+            {user ? (
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-red-600 pt-2 cursor-pointer"
+              >
+                <LogOut className="h-4 w-4" />
+                {t("লগআউট", "Sign Out")}
+              </button>
+            ) : (
+              <div className="pt-2 flex flex-col gap-2">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white"
+                >
+                  {t("লগইন / রেজিস্টার", "Sign In / Register")}
+                </Link>
+                <Link
+                  href="/download"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40"
+                >
+                  {t("অ্যাপ ডাউনলোড (APK)", "Download APK")}
+                </Link>
+              </div>
+            )}
           </div>
         )}
 
         {/* Main Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto">
+          {!user && isGuestAllowedRoute && (
+            <div className="mb-5 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-indigo-50 via-purple-50 to-indigo-50 dark:from-indigo-950/40 dark:via-purple-950/30 dark:to-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-2xs">
+              <div className="flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                <Sparkles className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                <span>
+                  {t(
+                    "আপনি অতিথি হিসেবে প্রশ্ন ব্যাংক ব্রাউজ করছেন। বুকমার্ক সংরক্ষণ ও পূর্ণাঙ্গ মডেল টেস্ট দিতে অ্যাকাউন্ট তৈরি করুন।",
+                    "You are browsing Medhavi as a guest. Create a free account to save bookmarks and take timed mock tests."
+                  )}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Link
+                  href="/download"
+                  className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors shadow-2xs"
+                >
+                  {t("অ্যাপ ডাউনলোড (APK)", "Get App")}
+                </Link>
+                <Link
+                  href="/login"
+                  className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  {t("লগইন", "Sign In")}
+                </Link>
+              </div>
+            </div>
+          )}
           {children}
         </main>
 
