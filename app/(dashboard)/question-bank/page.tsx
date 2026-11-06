@@ -6,6 +6,8 @@ import { Question, Exam, Subject } from "@/types";
 import {
   getQuestions,
   getSubjectQuestionCounts,
+  getBatchQuestionCounts,
+  getTotalVerifiedQuestionCount,
   QuestionFilters,
 } from "@/lib/services/question-service";
 import { getExams } from "@/lib/services/exam-service";
@@ -14,12 +16,6 @@ import { toggleBookmark, getUserBookmarkIds } from "@/lib/services/bookmark-serv
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/lib/context/language-context";
 import { BCS_BATCHES } from "@/lib/constants/bcs-batches";
-import {
-  BCS_TOTAL_QUESTION_COUNT,
-  BCS_GLOBAL_SUBJECT_COUNTS,
-  BCS_BATCH_TOTAL_COUNTS,
-  BCS_BATCH_SUBJECT_COUNTS,
-} from "@/lib/constants/bcs-batch-counts";
 import { StudyQuestionCard } from "@/components/question-bank/study-question-card";
 import { QuestionCardSkeleton } from "@/components/ui/skeletons";
 import { Button } from "@/components/ui/button";
@@ -50,6 +46,8 @@ export default function QuestionBankStudyPage() {
   const [exams, setExams] = useState<Exam[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subjectCounts, setSubjectCounts] = useState<Record<string, number>>({});
+  const [batchCounts, setBatchCounts] = useState<Record<string, number>>({});
+  const [totalVerifiedCount, setTotalVerifiedCount] = useState<number>(0);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
@@ -137,51 +135,55 @@ export default function QuestionBankStudyPage() {
     init();
   }, [user]);
 
-  // 2. Load Subjects & Live Question Counts when Exam changes
+  // 2. Load Subjects, Live Question Counts & Batch Counts dynamically from Firestore
   useEffect(() => {
-    async function loadSubjects() {
+    async function loadSubjectsAndCounts() {
       if (!selectedExamId) return;
       try {
         const subs = await getSubjectsByExamId(selectedExamId);
         setSubjects(subs);
-        setSelectedSubjectId("");
+
+        // Fetch overall verified total and batch counts dynamically from Firestore in parallel
+        const [totalCount, bCounts] = await Promise.all([
+          getTotalVerifiedQuestionCount(selectedExamId),
+          getBatchQuestionCounts(
+            BCS_BATCHES.map((b) => b.id).filter(Boolean),
+            true
+          ),
+        ]);
+        setTotalVerifiedCount(totalCount);
+        setBatchCounts(bCounts);
 
         if (subs.length > 0) {
-          const counts = await getSubjectQuestionCounts(subs.map((s) => s.id), true);
+          const counts = await getSubjectQuestionCounts(
+            subs.map((s) => s.id),
+            true,
+            selectedBatchTag || undefined
+          );
           setSubjectCounts(counts);
         } else {
           setSubjectCounts({});
         }
       } catch (err) {
-        console.error("Error loading subjects:", err);
+        console.error("Error loading subjects and dynamic counts:", err);
       }
     }
-    loadSubjects();
-  }, [selectedExamId]);
+    loadSubjectsAndCounts();
+  }, [selectedExamId, selectedBatchTag]);
 
   const totalExamQuestionCount = useMemo(() => {
-    return Object.values(subjectCounts).reduce((acc, c) => acc + c, 0);
-  }, [subjectCounts]);
+    return totalVerifiedCount > 0
+      ? totalVerifiedCount
+      : Object.values(subjectCounts).reduce((acc, c) => acc + c, 0);
+  }, [totalVerifiedCount, subjectCounts]);
 
-  // Dynamically resolve subject counts based on selected batch or global canonical baseline
-  const displayedSubjectCounts = useMemo(() => {
-    if (selectedBatchTag && BCS_BATCH_SUBJECT_COUNTS[selectedBatchTag]) {
-      return BCS_BATCH_SUBJECT_COUNTS[selectedBatchTag];
-    }
-    return {
-      ...BCS_GLOBAL_SUBJECT_COUNTS,
-      ...subjectCounts,
-    };
-  }, [selectedBatchTag, subjectCounts]);
-
-  // Dynamically resolve total question count based on selected batch or global canonical baseline
+  // Dynamically resolve total question count based on selected batch or global verified total
   const currentTotalQuestionCount = useMemo(() => {
-    if (selectedBatchTag && BCS_BATCH_TOTAL_COUNTS[selectedBatchTag]) {
-      return BCS_BATCH_TOTAL_COUNTS[selectedBatchTag];
+    if (selectedBatchTag) {
+      return batchCounts[selectedBatchTag] ?? Object.values(subjectCounts).reduce((acc, c) => acc + c, 0);
     }
-    const sum = Object.values(subjectCounts).reduce((acc, c) => acc + c, 0);
-    return sum > 0 ? sum : BCS_TOTAL_QUESTION_COUNT;
-  }, [selectedBatchTag, subjectCounts]);
+    return totalExamQuestionCount;
+  }, [selectedBatchTag, batchCounts, subjectCounts, totalExamQuestionCount]);
 
   // Subject Name Lookup Map
   const subjectMap = useMemo(() => {
@@ -515,9 +517,9 @@ export default function QuestionBankStudyPage() {
                 }`}
               >
                 {filteredBatches.map((b) => {
-                  const count = BCS_BATCH_TOTAL_COUNTS[b.id];
+                  const count = b.id ? batchCounts[b.id] : currentTotalQuestionCount;
                   const badge = b.id
-                    ? count
+                    ? count && count > 0
                       ? ` (${n(count)})`
                       : ` (${t("যাচাই প্রক্রিয়াধীন", "Under review")})`
                     : "";
@@ -619,7 +621,7 @@ export default function QuestionBankStudyPage() {
 
             {/* Per-Subject Pills with Live Counts */}
             {subjects.map((sub) => {
-              const count = displayedSubjectCounts[sub.id];
+              const count = subjectCounts[sub.id];
               const isSelected = selectedSubjectId === sub.id;
 
               return (

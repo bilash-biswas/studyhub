@@ -20,7 +20,6 @@ import {
 import { db, questionsCol, questionDoc } from "@/lib/firebase/firestore";
 import { Question, QuestionDifficulty, QuestionStatus } from "@/types";
 import { getCacheItem, setCacheItem } from "@/lib/cache/idb-cache";
-import { BCS_GLOBAL_SUBJECT_COUNTS } from "@/lib/constants/bcs-batch-counts";
 
 export interface QuestionFilters {
   examId?: string;
@@ -594,20 +593,20 @@ export async function getQuestionStats(): Promise<{
 
 export async function getSubjectQuestionCounts(
   subjectIds: string[],
-  verifiedOnly: boolean = false
+  verifiedOnly: boolean = false,
+  batchTag?: string
 ): Promise<Record<string, number>> {
-  const cacheKey = `sub_counts_${verifiedOnly ? "v2" : "v0"}_${subjectIds.slice().sort().join("_")}`;
+  const cacheKey = `sub_counts_${verifiedOnly ? "v3" : "v0"}_${batchTag || "all"}_${subjectIds.slice().sort().join("_")}`;
   try {
     const cached = await getCacheItem<Record<string, number>>(cacheKey);
-    if (cached && Object.keys(cached).length > 0 && Object.values(cached).some((c) => c > 0)) {
+    if (cached && Object.keys(cached).length > 0) {
       return cached;
     }
   } catch {}
 
-  // Initialize with canonical counts so category-wise numbers are always present
   const counts: Record<string, number> = {};
   for (const subId of subjectIds) {
-    counts[subId] = BCS_GLOBAL_SUBJECT_COUNTS[subId] || 0;
+    counts[subId] = 0;
   }
 
   try {
@@ -621,6 +620,9 @@ export async function getSubjectQuestionCounts(
           if (verifiedOnly) {
             constraints.push(where("adminVerified", "==", true));
           }
+          if (batchTag && batchTag.trim().length > 0) {
+            constraints.push(where("tags", "array-contains", batchTag.trim()));
+          }
           const snap = await getCountFromServer(
             query(questionsCol(), ...constraints)
           );
@@ -629,7 +631,7 @@ export async function getSubjectQuestionCounts(
             counts[subId] = c;
           }
         } catch (subErr) {
-          // Keep authentic canonical baseline if Firestore quota is exceeded
+          console.warn(`Subject count query failed for ${subId}:`, subErr);
         }
       })
     );
@@ -638,6 +640,66 @@ export async function getSubjectQuestionCounts(
     console.error("Error fetching subject question counts:", error);
   }
   return counts;
+}
+
+export async function getBatchQuestionCounts(
+  batchIds: string[],
+  verifiedOnly: boolean = true
+): Promise<Record<string, number>> {
+  const cacheKey = `batch_counts_${verifiedOnly ? "v1" : "v0"}_${batchIds.slice().sort().join("_")}`;
+  try {
+    const cached = await getCacheItem<Record<string, number>>(cacheKey);
+    if (cached && Object.keys(cached).length > 0) {
+      return cached;
+    }
+  } catch {}
+
+  const counts: Record<string, number> = {};
+  try {
+    await Promise.all(
+      batchIds.map(async (bId) => {
+        try {
+          const constraints: QueryConstraint[] = [
+            where("status", "==", "published"),
+            where("tags", "array-contains", bId),
+          ];
+          if (verifiedOnly) {
+            constraints.push(where("adminVerified", "==", true));
+          }
+          const snap = await getCountFromServer(
+            query(questionsCol(), ...constraints)
+          );
+          const c = snap.data().count;
+          if (typeof c === "number" && c > 0) {
+            counts[bId] = c;
+          }
+        } catch (bErr) {
+          console.warn(`Batch count query failed for ${bId}:`, bErr);
+        }
+      })
+    );
+    setCacheItem(cacheKey, counts).catch(() => {});
+  } catch (error) {
+    console.error("Error fetching batch question counts:", error);
+  }
+  return counts;
+}
+
+export async function getTotalVerifiedQuestionCount(examId?: string): Promise<number> {
+  try {
+    const constraints: QueryConstraint[] = [
+      where("status", "==", "published"),
+      where("adminVerified", "==", true),
+    ];
+    if (examId) {
+      constraints.push(where("examId", "==", examId));
+    }
+    const snap = await getCountFromServer(query(questionsCol(), ...constraints));
+    return snap.data().count;
+  } catch (error) {
+    console.error("Error fetching total verified question count:", error);
+    return 0;
+  }
 }
 
 export async function getSubjectVerificationStats(
