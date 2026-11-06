@@ -394,9 +394,9 @@ export default function QuestionBankStudyPage() {
               <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                 {t("প্রশ্ন ব্যাংক", "Question Bank")}
               </h1>
-              {currentTotalQuestionCount > 0 && (
+              {totalVerifiedCount > 0 && (
                 <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300">
-                  {n(currentTotalQuestionCount)} {t("প্রশ্ন", "Questions")}
+                  {n(totalVerifiedCount)} {t("যাচাইকৃত প্রশ্ন", "Verified Questions")}
                 </span>
               )}
             </div>
@@ -516,19 +516,11 @@ export default function QuestionBankStudyPage() {
                     : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-transparent hover:border-slate-300"
                 }`}
               >
-                {filteredBatches.map((b) => {
-                  const count = b.id ? batchCounts[b.id] : currentTotalQuestionCount;
-                  const badge = b.id
-                    ? count && count > 0
-                      ? ` (${n(count)})`
-                      : ` (${t("যাচাই প্রক্রিয়াধীন", "Under review")})`
-                    : "";
-                  return (
-                    <option key={b.id} value={b.id}>
-                      {(lang === "bn" ? b.labelBn : b.labelEn) + badge}
-                    </option>
-                  );
-                })}
+                {filteredBatches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {lang === "bn" ? b.labelBn : b.labelEn}
+                  </option>
+                ))}
               </select>
 
               {/* Era Quick Presets (Small chips) */}
