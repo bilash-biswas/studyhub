@@ -596,7 +596,7 @@ export async function getSubjectQuestionCounts(
   subjectIds: string[],
   verifiedOnly: boolean = false
 ): Promise<Record<string, number>> {
-  const cacheKey = `sub_counts_${verifiedOnly ? "v1" : "v0"}_${subjectIds.slice().sort().join("_")}`;
+  const cacheKey = `sub_counts_${verifiedOnly ? "v2" : "v0"}_${subjectIds.slice().sort().join("_")}`;
   try {
     const cached = await getCacheItem<Record<string, number>>(cacheKey);
     if (cached && Object.keys(cached).length > 0 && Object.values(cached).some((c) => c > 0)) {
@@ -625,7 +625,7 @@ export async function getSubjectQuestionCounts(
             query(questionsCol(), ...constraints)
           );
           const c = snap.data().count;
-          if (typeof c === "number" && c > 0) {
+          if (typeof c === "number") {
             counts[subId] = c;
           }
         } catch (subErr) {
