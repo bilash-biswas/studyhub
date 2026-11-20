@@ -465,7 +465,7 @@ export function QuestionCard({
 
           {/* Explanation with Math Support (Left-Accent Notion Style) */}
           {question.explanation && (
-            <div className="p-3.5 rounded-r-xl border-l-3 border-indigo-500 bg-slate-50/90 dark:bg-slate-900/40 border-y border-r border-slate-200/60 dark:border-slate-800/60 text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+            <div className="p-3.5 rounded-r-xl border-l-3 border-indigo-500 bg-slate-50/90 dark:bg-slate-900/40 border-y border-r border-slate-200/60 dark:border-slate-800/60 text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
               <div className="flex items-center justify-between gap-2 font-semibold text-indigo-700 dark:text-indigo-400 mb-1.5">
                 <span>Explanation / সমাধান:</span>
                 <button

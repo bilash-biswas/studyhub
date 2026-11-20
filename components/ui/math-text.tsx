@@ -146,8 +146,8 @@ export function MathText({ text, className, as: Component = "span" }: MathTextPr
   if (!text) return null;
 
   const combinedClassName = className
-    ? `whitespace-pre-line ${className}`
-    : "whitespace-pre-line";
+    ? `whitespace-pre-wrap ${className}`
+    : "whitespace-pre-wrap";
 
   return (
     <Component className={combinedClassName}>

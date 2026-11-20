@@ -431,7 +431,7 @@ export function DailyRunner({
             </div>
 
             {currentQuestion.explanation ? (
-              <div className="leading-relaxed pt-1 text-slate-700 dark:text-slate-300 whitespace-pre-line text-xs sm:text-[13px]">
+              <div className="leading-relaxed pt-1 text-slate-700 dark:text-slate-300 whitespace-pre-wrap text-xs sm:text-[13px]">
                 <MathText text={currentQuestion.explanation} />
               </div>
             ) : (

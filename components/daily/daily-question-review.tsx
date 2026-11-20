@@ -160,7 +160,7 @@ export function DailyQuestionReview({ questions }: DailyQuestionReviewProps) {
                       </button>
                     </div>
 
-                    <div className="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line text-xs">
+                    <div className="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap text-xs">
                       <MathText text={q.explanation} />
                     </div>
                   </div>
